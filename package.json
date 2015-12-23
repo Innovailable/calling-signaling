@@ -1,0 +1,28 @@
+{
+  "name": "easy-calling",
+  "description": "A WebRTC signaling server supporting calling",
+  "version": "0.0.1",
+  "dependencies": {
+    "bluebird": "^3.0.6",
+    "deep-equal": "^1.0.1",
+    "node-uuid": "^1.4.7",
+    "ws": "^0.8.1"
+  },
+  "scripts": {
+    "test": "./node_modules/.bin/mocha --compilers coffee:coffee-script/register --recursive"
+  },
+  "devDependencies": {
+    "chai": "^3.4.1",
+    "chai-as-promised": "^5.1.0",
+    "coffee-script": "^1.10.0",
+    "mocha": "^2.3.4"
+  },
+  "main": "dist/lib.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Innovailable/easy-calling.git"
+  },
+  "bin": {
+    "easy-signaling": "dist/main.js"
+  }
+}
