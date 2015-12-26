@@ -129,6 +129,37 @@ On status update of other users:
     "status": { .. status .. }
   }
 
+  // request
+  {
+    "type": "register_room",
+    "tid": tid,
+    "namespace": "namespace_id",
+    "room": "room_id"
+  }
+
+  // event
+  {
+    "type": "room_registered",
+    "namespace": "namespace_id",
+    "room": "room_id",
+    "status": { .. status .. }
+  }
+
+  // event
+  {
+    "type": "room_status",
+    "namespace": "namespace_id",
+    "room": "room_id",
+    "status": { .. status .. }
+  }
+
+  // event
+  {
+    "type": "room_closed",
+    "namespace": "namespace_id",
+    "room": "room_id"
+  }
+
 ### Room Joining
 
 To join a specific room:

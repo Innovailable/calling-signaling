@@ -32,6 +32,15 @@ class User extends EventEmitter
     @channel.on 'closed', () =>
       @leave()
 
+    @channel.on 'error', (error) =>
+      try
+        @channel.send({
+          type: 'error'
+          error: error
+        })
+      catch
+      @channel.close()
+
 
   receive: (msg) ->
     error = (reason) =>

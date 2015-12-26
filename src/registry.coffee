@@ -1,150 +1,109 @@
 {is_empty} = require('./helper')
+{EventEmitter} = require('events')
 
 
-class Registry
+class Namespace extends EventEmitter
 
-  constructor: (server) ->
-    @namespaces = {}
-
-    # TODO: verification of incoming package
-
-    server.command 'register', {
-      namespace: 'string'
-    }, (user, msg) =>
-      return @register(user, msg.namespace)
-
-    server.command 'unregister', {
-      namespace: 'string'
-    }, (user, msg) =>
-      return @unregister(user, msg.namespace)
-
-    server.command 'subscribe', {
-      namespace: 'string'
-    }, (user, msg) =>
-      return @subscribe(user, msg.namespace)
-
-    server.command 'unsubscribe', {
-      namespace: 'string'
-    }, (user, msg) =>
-      return @unsubscribe(user, msg.namespace)
-
-    return
+  constructor: (@id) ->
+    @subscribed = {}
+    @registered = {}
+    @rooms = {}
 
 
-  get_namespace: (ns_id, create=false) ->
-    namespace = @namespaces[ns_id]
-
-    if not namespace?
-      if create
-        namespace = @namespaces[ns_id] = {
-          subscribed: {}
-          registered: {}
-        }
-      else
-        throw new Error("Namespace does not exist")
-
-    return namespace
+  broadcast: (msg) ->
+    for _, entry of @subscribed
+      entry.user.send(msg)
 
 
-  subscribe: (user, ns_id) ->
-    # prepare cleanup
-
-    # TODO: cleanup cleanup after unsubscribe?
-    user.on 'left', () ->
-      delete @namespaces[ns_id][user.id]
-
-    # get namespace users
-
-    namespace = @get_namespace(ns_id, true)
-    users = namespace.subscribed
-
+  subscribe: (user) ->
     # sanity check
 
-    if users[user.id]?
+    if @subscribed[user.id]?
       throw new Error("User was already subscribed to that namespace")
+
+    # cleanup on leaving
+
+    left_cb = () =>
+      @unsubscribe(user)
+
+    user.on('left', left_cb)
 
     # actually subscribe
 
-    users[user.id] = user
+    @subscribed[user.id] = {
+      user: user
+      cleanup: () ->
+        user.removeListener('left', left_cb)
+    }
 
     # return list of registered users
 
     users = {}
 
-    for _, user_entry of namespace.registered
-      user = user_entry.user
+    for _, entry of @registered
+      user = entry.user
       users[user.id] = user.status
 
     return users
 
 
-
-  unsubscribe: (user, ns_id) ->
-    # get namespace users
-
-    users = @get_namespace(ns_id).subscribed
+  unsubscribe: (user) ->
+    entry = @subscribed[user.id]
 
     # sanity check
 
-    if not users[user.id]?
+    if not entry?
       throw new Error("User was not subscribed to namespace")
+
+    # do cleanup
+
+    entry.cleanup()
 
     # actually remove user from namespace
 
-    delete users[user.id]
+    delete @subscribed[user.id]
 
     # clean up namespace if empty
 
-    @empty_check_namespace(ns_id)
+    @empty_check()
 
     return
 
 
-  register: (user, ns_id) ->
-    # get namespace
-
-    namespace = @get_namespace(ns_id, true)
-    register = namespace.registered
-
+  register: (user) ->
     # already registered?
 
-    if register[user.id]?
+    if @registered[user.id]?
       throw new Error("User was already registered to that namespace")
 
     # notify subscribers
 
-    msg = {
+    @broadcast({
       type: 'user_registered'
       user: user.id
       status: user.status
-      namespace: ns_id
-    }
-
-    for _, user of namespace.subscribed
-      user.send(msg)
+      namespace: @id
+    })
 
     # register user callbacks
 
-    status_change = () ->
-      msg = {
+    status_change = () =>
+      @broadcast({
         type: 'user_status'
         user: user.id
-        namespace: ns_id
+        namespace: @id
         status: user.status
-      }
-
-      for _, user of namespace.subscribed
-        user.send(msg)
+      })
 
     left = () =>
-      @unregister(user, ns_id)
+      @unregister(user)
 
     user.on('status_change', status_change)
     user.on('left', left)
 
     # register
 
-    register[user.id] = {
+    @registered[user.id] = {
       user: user
       cleanup: () ->
         user.removeListener('status_change', status_change)
@@ -154,54 +113,164 @@ class Registry
     return
 
 
-  unregister: (user, ns_id) ->
-    # get namespace
+  unregister: (user) ->
 
-    namespace = @get_namespace(ns_id)
-    register = namespace.registered
+    entry = @registered[user.id]
 
-    user_entry = register[user.id]
-
-    if not user_entry?
+    if not entry?
       throw new Error("User was not registered to namespace")
 
     # tell subscribers
 
-    msg = {
+    @broadcast({
       type: 'user_left'
       user: user.id
-      namespaces: ns_id
-    }
-
-    for _, user of namespace.subscribed
-      user.send(msg)
+      namespaces: @id
+    })
 
     # unregister
 
-    user_entry.cleanup()
-    delete register[user.id]
+    entry.cleanup()
+    delete @registered[user.id]
 
     # clean up namespace if empty
 
-    @empty_check_namespace(ns_id)
+    @empty_check()
 
     return
 
 
-  empty_check_namespace: (ns_id) ->
-    # get namespace
+  register_room: (room) ->
+    # already registered
 
+    if @rooms[room.id]?
+      throw new Error("Room was already registered to that namespace")
+
+    # notify subscribers
+
+    @broadcast({
+      type: 'room_registered'
+      room: room.id
+      status: room.status
+      namespace: @id
+    })
+
+    # register callbacks
+
+    empty_cb = () =>
+      @unregister(room)
+
+    status_cb = (status) ->
+      @broadcast({
+        type: 'room_status'
+        room: room.id
+      })
+
+    room.on('empty', empty_cb)
+    room.on('status_changed', status_cb)
+
+    # add to room list
+
+    @rooms[room.id] = {
+      room: room
+      cleanup: () ->
+        room.removeListener('empty', empty_cb)
+        room.removeListnere('status_changed', status_cb)
+    }
+
+    return
+
+
+  unregister_room: (room) ->
+
+    entry = @rooms[room.id]
+
+    if not entry?
+      throw new Error("Room was not registered to namespace")
+
+    # tell subscribers
+
+    @broadcast({
+      type: 'room_closed'
+      room: room.id
+      namespaces: @id
+    })
+
+    # unregister
+
+    entry.cleanup()
+    delete @rooms[user.id]
+
+    # clean up namespace if empty
+
+    @empty_check()
+
+    return
+
+
+  empty_check: () ->
+    if is_empty(@subscribed) and is_empty(@registered) and is_empty(@rooms)
+      @emit('empty')
+
+
+class Registry
+
+  constructor: (server, @rooms) ->
+    @namespaces = {}
+
+    # TODO: verification of incoming package
+
+    server.command 'register', {
+      namespace: 'string'
+    }, (user, msg) =>
+      return @get_namespace(msg.namespace, true).register(user)
+
+    server.command 'unregister', {
+      namespace: 'string'
+    }, (user, msg) =>
+      return @get_namespace(msg.namespace, false).unregister(user)
+
+    server.command 'register_room', {
+      namespace: 'string'
+      room: 'room'
+    }, (user, msg) =>
+      namespace = @get_namespace(msg.namespace, true)
+      room = @rooms.get_room(msg.room)
+      return namespace.register_room(room)
+
+    server.command 'unregister_room', {
+      namespace: 'string'
+    }, (user, msg) =>
+      namespace = @get_namespace(msg.namespace, false)
+      room = @rooms.get_room(msg.room)
+      return namespace.unregister_room(room)
+
+    server.command 'subscribe', {
+      namespace: 'string'
+    }, (user, msg) =>
+      return @get_namespace(msg.namespace, true).subscribe(user)
+
+    server.command 'unsubscribe', {
+      namespace: 'string'
+    }, (user, msg) =>
+      return @get_namespace(msg.namespace, false).unsubscribe(user)
+
+    return
+
+
+  get_namespace: (ns_id, create=false) ->
     namespace = @namespaces[ns_id]
 
-    # already cleaned up
-
     if not namespace?
-      return
+      if create
+        namespace = @namespaces[ns_id] = new Namespace()
 
-    # check if vacant
+        namespace.on 'empty', () =>
+          delete @namespaces[ns_id]
+      else
+        throw new Error("Namespace does not exist")
 
-    if is_empty(namespace.subscribed) and is_empty(namespace.registered)
-      delete @namespaces[ns_id]
+    return namespace
 
 
 exports.Registry = Registry

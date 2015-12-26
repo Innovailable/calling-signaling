@@ -1,29 +1,6 @@
-{TestUser, TestServer} = require('./helper')
+{TestUser, TestServer, TestRooms} = require('./helper')
 {InvitationManager} = require('../../src/invitations')
-
-class TestRoom
-
-  constructor: (@id) ->
-    @users = {}
-
-  invite: (user, promise) ->
-    @users[user.id] = promise
-
-  peers_object: () ->
-    return {}
-
-class TestRooms
-
-  constructor: () ->
-    @rooms = {}
-
-  get_room: (id) ->
-    room = @rooms[id]
-
-    if not room?
-      room = @rooms[id] = new TestRoom(id)
-
-    return room
+{EventEmitter} = require('events')
 
 
 describe 'Invitations', () ->
@@ -197,6 +174,38 @@ describe 'Invitations', () ->
     msg.type.should.equal('invite_response')
     msg.handle.should.equal(a_handle)
     msg.accepted.should.be.false
+
+
+  it 'should deny and cancel invitations after room is empty', () ->
+    res = invites.invite(user_a, 'b', 'r', {})
+
+    a_handle = res.handle
+
+    msg = user_b.sent[0]
+    msg.type.should.equal('invited')
+
+    rooms.rooms['r'].emit('empty')
+
+    msg = user_b.sent[1]
+    msg.type.should.equal('invite_cancelled')
+    msg.handle.should.equal(a_handle)
+
+    msg = user_a.sent[0]
+    msg.type.should.equal('invite_response')
+    msg.handle.should.equal(a_handle)
+    msg.accepted.should.be.false
+
+
+  it 'should clean up `empty` listeners after resolving', () ->
+    res = invites.invite(user_a, 'b', 'r', {})
+    handle = res.handle
+
+    room = rooms.rooms['r']
+    room.listeners('empty').length.should.equal(1)
+
+    invites.cancel(user_a, handle)
+
+    room.listeners('empty').should.be.empty
 
 
   it 'should fail on inviting unknown user', () ->

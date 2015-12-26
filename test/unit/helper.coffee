@@ -38,7 +38,35 @@ class TestServer
     return @users[id]
 
 
+class TestRoom extends EventEmitter
+
+  constructor: (@id) ->
+    @users = {}
+
+  invite: (user, promise) ->
+    @users[user.id] = promise
+
+  peers_object: () ->
+    return {}
+
+
+class TestRooms
+
+  constructor: () ->
+    @rooms = {}
+
+  get_room: (id) ->
+    room = @rooms[id]
+
+    if not room?
+      room = @rooms[id] = new TestRoom(id)
+
+    return room
+
+
 module.exports = {
   TestUser: TestUser
   TestServer: TestServer
+  TestRooms: TestRooms
+  TestRoom: TestRoom
 }
