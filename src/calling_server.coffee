@@ -10,7 +10,7 @@
 WebSocketServer = require('ws').Server
 
 
-SERVER_ID = 'easy-calling 1.0'
+SERVER_ID = 'calling-signaling 1.0'
 
 class CallingServer extends Server
 

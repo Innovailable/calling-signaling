@@ -7,34 +7,6 @@ EventEmitter = require('events').EventEmitter
 #
 # @constructor
 # @param {WebSocket} ws The websocket connection with the client
-#
-# @example
-#     // using only one Room
-#
-#     var es = require('easy-signaling');
-#     var ws = require('ws')
-#
-#     var wss = new ws.WebSocketServer({port: 8080, host: '0.0.0.0'})
-#     var room = new es.Room();
-#
-#     wss.on('connection', function(ws) {
-#       channel = new es.WebsocketChannel(ws);
-#       room.create_guest(channel);
-#     });
-#
-# @example
-#     // using Hotel to support multiple rooms based on the URL
-#
-#     var es = require('easy-signaling');
-#     var ws = require('ws')
-#
-#     var wss = new ws.WebSocketServer({port: 8080, host: '0.0.0.0'})
-#     var hotel = new es.Hotel();
-#
-#     wss.on('connection', function(ws) {
-#       channel = new es.WebsocketChannel(ws);
-#       hotel.create_guest(channel, ws.upgradeReq.url);
-#     });
 ###
 class exports.WebsocketChannel extends EventEmitter
 
