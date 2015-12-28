@@ -64,8 +64,6 @@ Subscribe a client to a namespace to get announcements about other users:
       "namespace": "namespace_id"
     }
 
-Answer from server to a subscription:
-
     // answer
     {
       "user_id": { .. status .. },
@@ -106,8 +104,8 @@ On new users:
     // event
     {
       "type": "ns_user_add",
-      "user": "user_id",
       "namespace": "namespace_id",
+      "user": "user_id",
       "status": { .. status .. }
     }
 
@@ -116,17 +114,17 @@ On user left:
     // event
     {
       "type": "ns_user_rm",
-      "user": "user_id"
       "namespace": "namespace_id",
+      "user": "user_id"
     }
 
 On status update of other users:
 
     // event
     {
-      "type": "user_status",
-      "user": "user_id",
+      "type": "user_update",
       "namespace": "namespace_id",
+      "user": "user_id",
       "status": { .. status .. }
     }
 
@@ -140,12 +138,27 @@ On status update of other users:
       "room": "room_id"
     }
 
+    // request
+    {
+      "type": "ns_room_unregister",
+      "tid": tid,
+      "namespace": "namespace_id",
+      "room": "room_id"
+    }
+
     // event
     {
       "type": "ns_room_add",
       "namespace": "namespace_id",
       "room": "room_id",
-      "status": { .. status .. }
+      "status": { .. room status .. }
+      "users": {
+        "user_id": {
+          "status": { ..  user status .. },
+          "pending": true|false
+        },
+        ..
+      }
     }
 
     // event
@@ -157,10 +170,10 @@ On status update of other users:
 
     // event
     {
-      "type": "ns_room_status",
+      "type": "ns_room_update",
       "namespace": "namespace_id",
       "room": "room_id",
-      "status": { .. status .. }
+      "status": { .. room status .. }
     }
 
     // event
@@ -169,7 +182,7 @@ On status update of other users:
       "namespace": "namespace_id",
       "room": "room_id",
       "user": "user_id",
-      "status": { .. status .. }
+      "status": { .. user status .. }
     }
 
     // event
@@ -182,35 +195,25 @@ On status update of other users:
 
     // event
     {
-      "type": "ns_room_user_status",
+      "type": "ns_room_user_update",
       "namespace": "namespace_id",
       "room": "room_id",
       "user": "user_id",
-      "status": { .. status .. }
+      [ "pending": false, ]
+      [ "status": { .. user status .. } ]
     }
 
 ### Room
 
-To join a specific room:
+To join a room:
 
     // request
     {
       "type": "room_join",
       "tid": tid,
-      "room": "room_id"
+      [ "room": "room_id", ]
       "status": { .. peer status ... }
     }
-
-To join a new empty room:
-
-    // request
-    {
-      "type": "room_join"
-      "tid": tid,
-      "status": { .. peer status ... }
-    }
-
-Answer to joining:
 
     // answer
     {
@@ -236,17 +239,9 @@ Answer to joining:
       "type": "room_status",
       "room": "room_id",
       "key": "key_id",
-      "value": value
-    }
-
-    // request
-    {
-      "type": "room_status",
-      "room": "room_id",
-      "key": "key_id",
       "value": value,
-      "check": true,
-      "previous": value
+      [ "check": true, ]
+      [ "previous": value ]
     }
 
     // event
@@ -260,13 +255,6 @@ Answer to joining:
 
     // event
     {
-      "type": "room_peer_accepted",
-      "room": "room_id",
-      "user": "user_id"
-    }
-
-    // event
-    {
       "type": "room_peer_rm",
       "room": "room_id",
       "user": "user_id"
@@ -274,17 +262,10 @@ Answer to joining:
 
     // request
     {
-      "type": "room_peer_status",
+      "type": "room_peer_update",
       "room": "room_id",
-      "status": { .. status .. }
-    }
-
-    // event
-    {
-      "type": "room_peer_status",
-      "room": "room_id",
-      "user": "user_id",
-      "status": { .. status .. }
+      [ "pending": false, ]
+      [ "status": { .. status .. } ]
     }
 
     // request
