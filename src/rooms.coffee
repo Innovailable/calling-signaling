@@ -65,14 +65,14 @@ class Room extends EventEmitter
 
     room_user.on 'status_changed', () =>
       @broadcast({
-        type: 'peer_status'
+        type: 'room_peer_update'
         room: @id
         user: user.id
         status: room_user.status
       })
 
     @broadcast({
-      type: 'peer_joined'
+      type: 'room_peer_add'
       room: @id
       pending: pending
       user: user.id
@@ -103,9 +103,10 @@ class Room extends EventEmitter
 
       if accepted
         @broadcast({
-          type: 'peer_accepted'
+          type: 'room_peer_update'
           room: @id
           user: user.id
+          pending: false
         })
 
         room_user.pending = false
@@ -143,7 +144,7 @@ class Room extends EventEmitter
     delete @users[user.id]
 
     @broadcast({
-      type: 'peer_left'
+      type: 'room_peer_rm'
       room: @id
       user: user.id
     })
@@ -177,7 +178,7 @@ class Room extends EventEmitter
       throw new Error("Recipient is pending")
 
     to_user.user.send({
-      type: 'from'
+      type: 'room_peer_from'
       room: @id
       user: user.id
       event: event
@@ -194,7 +195,7 @@ class Room extends EventEmitter
     @status[key] = value
 
     @broadcast({
-      type: 'room_status'
+      type: 'room_update'
       room: @id
       status: @status
     }, user.id)
@@ -218,7 +219,7 @@ class RoomManager
   constructor: (server) ->
     @rooms = {}
 
-    server.command 'join', {
+    server.command 'room_join', {
       room: 'string'
       status: ['object', 'undefined']
     }, (user, msg) =>
@@ -230,13 +231,13 @@ class RoomManager
       room = @get_room(msg.room, true)
       return room.join(user, status)
 
-    server.command 'leave', {
+    server.command 'room_leave', {
       room: 'string'
     }, (user, msg) =>
       room = @get_room(msg.room)
       return room.leave(user)
 
-    server.command 'peer_status', {
+    server.command 'room_peer_status', {
       room: 'string'
       status: 'object'
     }, (user, msg) =>
@@ -253,7 +254,7 @@ class RoomManager
       room = @get_room(msg.room)
       return room.room_status(user, msg.key, msg.value, msg.check, msg.previous)
 
-    server.command 'to', {
+    server.command 'room_peer_to', {
       room: 'string'
       user: 'string'
       event: 'string'

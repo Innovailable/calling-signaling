@@ -79,7 +79,7 @@ class Namespace extends EventEmitter
     # notify subscribers
 
     @broadcast({
-      type: 'user_registered'
+      type: 'ns_user_add'
       user: user.id
       status: user.status
       namespace: @id
@@ -89,7 +89,7 @@ class Namespace extends EventEmitter
 
     status_change = () =>
       @broadcast({
-        type: 'user_status'
+        type: 'ns_user_update'
         user: user.id
         namespace: @id
         status: user.status
@@ -123,7 +123,7 @@ class Namespace extends EventEmitter
     # tell subscribers
 
     @broadcast({
-      type: 'user_left'
+      type: 'ns_user_rm'
       user: user.id
       namespaces: @id
     })
@@ -149,7 +149,7 @@ class Namespace extends EventEmitter
     # notify subscribers
 
     @broadcast({
-      type: 'room_registered'
+      type: 'ns_room_add'
       room: room.id
       status: room.status
       namespace: @id
@@ -162,7 +162,7 @@ class Namespace extends EventEmitter
 
     status_cb = (status) ->
       @broadcast({
-        type: 'room_status'
+        type: 'ns_room_update'
         room: room.id
       })
 
@@ -191,7 +191,7 @@ class Namespace extends EventEmitter
     # tell subscribers
 
     @broadcast({
-      type: 'room_closed'
+      type: 'ns_room_rm'
       room: room.id
       namespaces: @id
     })
@@ -220,17 +220,17 @@ class Registry
 
     # TODO: verification of incoming package
 
-    server.command 'register', {
+    server.command 'ns_user_register', {
       namespace: 'string'
     }, (user, msg) =>
       return @get_namespace(msg.namespace, true).register(user)
 
-    server.command 'unregister', {
+    server.command 'ns_user_unregister', {
       namespace: 'string'
     }, (user, msg) =>
       return @get_namespace(msg.namespace, false).unregister(user)
 
-    server.command 'register_room', {
+    server.command 'ns_room_register', {
       namespace: 'string'
       room: 'room'
     }, (user, msg) =>
@@ -238,19 +238,19 @@ class Registry
       room = @rooms.get_room(msg.room)
       return namespace.register_room(room)
 
-    server.command 'unregister_room', {
+    server.command 'ns_room_unregister', {
       namespace: 'string'
     }, (user, msg) =>
       namespace = @get_namespace(msg.namespace, false)
       room = @rooms.get_room(msg.room)
       return namespace.unregister_room(room)
 
-    server.command 'subscribe', {
+    server.command 'ns_subscribe', {
       namespace: 'string'
     }, (user, msg) =>
       return @get_namespace(msg.namespace, true).subscribe(user)
 
-    server.command 'unsubscribe', {
+    server.command 'ns_unsubscribe', {
       namespace: 'string'
     }, (user, msg) =>
       return @get_namespace(msg.namespace, false).unsubscribe(user)

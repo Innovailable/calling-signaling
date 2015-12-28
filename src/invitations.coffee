@@ -92,7 +92,7 @@ class InvitationManager
         for _, invite of user.invites.in
           invite.deny()
 
-    @server.command 'invite', {
+    @server.command 'invite_send', {
       room: 'string'
       user: 'string'
       data: 'object'
@@ -134,7 +134,7 @@ class InvitationManager
     room.invite(to, invitation.promise)
 
     to.send({
-      type: 'invited'
+      type: 'invite_incoming'
       handle: to_handle
       user: user.id
       status: user.status

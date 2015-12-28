@@ -59,7 +59,7 @@ describe 'Invitations', () ->
     invites.invite(user_a, 'b', 'r', {})
 
     msg = user_b.sent[0]
-    msg.type.should.equal('invited')
+    msg.type.should.equal('invite_incoming')
     msg.user.should.equal('a')
     msg.status.should.deep.equal({})
     msg.data.should.deep.equal({})
@@ -73,7 +73,7 @@ describe 'Invitations', () ->
     invites.cancel(user_a, a_handle)
 
     msg = user_b.sent[0]
-    msg.type.should.equal('invited')
+    msg.type.should.equal('invite_incoming')
     b_handle = msg.handle
 
     msg = user_b.sent[1]
@@ -87,7 +87,7 @@ describe 'Invitations', () ->
     a_handle = res.handle
 
     msg = user_b.sent[0]
-    msg.type.should.equal('invited')
+    msg.type.should.equal('invite_incoming')
     b_handle = msg.handle
 
     res = invites.accept(user_b, b_handle)
@@ -106,7 +106,7 @@ describe 'Invitations', () ->
     a_handle = res.handle
 
     msg = user_b.sent[0]
-    msg.type.should.equal('invited')
+    msg.type.should.equal('invite_incoming')
     b_handle = msg.handle
 
     invites.deny(user_b, b_handle)
@@ -123,7 +123,7 @@ describe 'Invitations', () ->
     a_handle = res.handle
 
     msg = user_b.sent[0]
-    msg.type.should.equal('invited')
+    msg.type.should.equal('invite_incoming')
     b_handle = msg.handle
 
     invites.cancel(user_a, a_handle)
@@ -137,7 +137,7 @@ describe 'Invitations', () ->
     a_handle = res.handle
 
     msg = user_b.sent[0]
-    msg.type.should.equal('invited')
+    msg.type.should.equal('invite_incoming')
     b_handle = msg.handle
 
     invites.accept(user_b, b_handle)
@@ -149,7 +149,7 @@ describe 'Invitations', () ->
 
     msg = user_b.sent[0]
     user_b.sent.length.should.equal(1)
-    msg.type.should.equal('invited')
+    msg.type.should.equal('invite_incoming')
     b_handle = msg.handle
 
     user_a.emit('left')
@@ -166,7 +166,7 @@ describe 'Invitations', () ->
     a_handle = res.handle
 
     msg = user_b.sent[0]
-    msg.type.should.equal('invited')
+    msg.type.should.equal('invite_incoming')
 
     user_b.emit('left')
 
@@ -182,7 +182,7 @@ describe 'Invitations', () ->
     a_handle = res.handle
 
     msg = user_b.sent[0]
-    msg.type.should.equal('invited')
+    msg.type.should.equal('invite_incoming')
 
     rooms.rooms['r'].emit('empty')
 
@@ -221,7 +221,7 @@ describe 'Invitations', () ->
     invites.invite(user_a, 'b', 'r', {})
 
     msg = user_b.sent[0]
-    msg.type.should.equal('invited')
+    msg.type.should.equal('invite_incoming')
     b_handle = msg.handle
 
     invites.accept(user_b, b_handle)
@@ -233,7 +233,7 @@ describe 'Invitations', () ->
     invites.invite(user_a, 'b', 'r', {})
 
     msg = user_b.sent[0]
-    msg.type.should.equal('invited')
+    msg.type.should.equal('invite_incoming')
     b_handle = msg.handle
 
     invites.deny(user_b, b_handle)

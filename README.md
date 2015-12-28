@@ -18,7 +18,8 @@ The server initiates the communication with the following message:
     // event
     {
       "type": "hello",
-      "id": own_user_id
+      "id": own_user_id,
+      "server": "server name"
     }
 
 Each `request` can have a `tid` field. If this field is present the server will
@@ -44,7 +45,7 @@ answers below. Only answers containing custom data will be documented.
 
 ### Status
 
-To update your own status
+To update your own global status
 
     // request
     {
@@ -244,6 +245,13 @@ To join a room:
       [ "previous": value ]
     }
 
+    // status
+    {
+      "type": "room_update",
+      "room": "room_id",
+      "status": { .. room status .. }
+    }
+
     // event
     {
       "type": "room_peer_add",
@@ -342,4 +350,11 @@ To join a room:
     {
       "type": "invite_cancelled",
       "handle": invite_handle
+    }
+
+### Ping
+
+    // request
+    {
+      "type": "ping"
     }

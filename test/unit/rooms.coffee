@@ -21,8 +21,8 @@ describe 'Rooms', () ->
       rooms = new RoomManager(server)
 
     it 'should let users join', () ->
-      server.trigger(user_a, {type: 'join', room: 'r'})
-      res = server.trigger(user_b, {type: 'join', room: 'r'})
+      server.trigger(user_a, {type: 'room_join', room: 'r'})
+      res = server.trigger(user_b, {type: 'room_join', room: 'r'})
 
       res.should.deep.equal({
         room: 'r'
@@ -37,10 +37,10 @@ describe 'Rooms', () ->
 
 
     it 'should let users leave', () ->
-      server.trigger(user_a, {type: 'join', room: 'r'})
-      server.trigger(user_a, {type: 'leave', room: 'r'})
+      server.trigger(user_a, {type: 'room_join', room: 'r'})
+      server.trigger(user_a, {type: 'room_leave', room: 'r'})
 
-      res = server.trigger(user_b, {type: 'join', room: 'r'})
+      res = server.trigger(user_b, {type: 'room_join', room: 'r'})
 
       res.should.deep.equal({
         room: 'r'
@@ -50,11 +50,11 @@ describe 'Rooms', () ->
 
 
     it 'should let users send messages', () ->
-      server.trigger(user_a, {type: 'join', room: 'r'})
-      server.trigger(user_b, {type: 'join', room: 'r'})
+      server.trigger(user_a, {type: 'room_join', room: 'r'})
+      server.trigger(user_b, {type: 'room_join', room: 'r'})
 
       server.trigger(user_a, {
-        type: 'to'
+        type: 'room_peer_to'
         room: 'r'
         user: 'b'
         event: 'test'
@@ -62,7 +62,7 @@ describe 'Rooms', () ->
       })
 
       user_b.sent[0].should.deep.equal({
-        type: 'from'
+        type: 'room_peer_from'
         room: 'r'
         user: 'a'
         event: 'test'
@@ -71,17 +71,17 @@ describe 'Rooms', () ->
 
 
     it 'should clean up rooms after users left', () ->
-      server.trigger(user_a, {type: 'join', room: 'r'})
+      server.trigger(user_a, {type: 'room_join', room: 'r'})
       expect(() -> rooms.get_room('r')).to.not.throw()
 
-      server.trigger(user_a, {type: 'leave', room: 'r'})
+      server.trigger(user_a, {type: 'room_leave', room: 'r'})
       expect(() -> rooms.get_room('r')).to.throw('Room does not exist')
 
 
     it 'should let users change room status', () ->
-      server.trigger(user_a, {type: 'join', room: 'r'})
+      server.trigger(user_a, {type: 'room_join', room: 'r'})
 
-      server.trigger(user_b, {type: 'join', room: 'r'})
+      server.trigger(user_b, {type: 'room_join', room: 'r'})
 
       server.trigger(user_a, {
         type: 'room_status'
@@ -91,33 +91,33 @@ describe 'Rooms', () ->
       })
 
       user_b.sent[0].should.deep.equal({
-        type: 'room_status'
+        type: 'room_update'
         room: 'r'
         status: {a: 'b'}
       })
 
-      res = server.trigger(user_c, {type: 'join', room: 'r'})
+      res = server.trigger(user_c, {type: 'room_join', room: 'r'})
       res.status.should.deep.equal({a: 'b'})
 
 
     it 'should let users change their status', () ->
-      server.trigger(user_a, {type: 'join', room: 'r'})
-      server.trigger(user_b, {type: 'join', room: 'r'})
+      server.trigger(user_a, {type: 'room_join', room: 'r'})
+      server.trigger(user_b, {type: 'room_join', room: 'r'})
 
       server.trigger(user_a, {
-        type: 'peer_status'
+        type: 'room_peer_status'
         room: 'r'
         status: {a: 'b'}
       })
 
       user_b.sent[0].should.deep.equal({
-        type: 'peer_status'
+        type: 'room_peer_update'
         room: 'r'
         user: 'a'
         status: {a: 'b'}
       })
 
-      res = server.trigger(user_c, {type: 'join', room: 'r'})
+      res = server.trigger(user_c, {type: 'room_join', room: 'r'})
       res.peers['a'].status.should.deep.equal({a: 'b'})
 
 
@@ -186,7 +186,7 @@ describe 'Rooms', () ->
         room.join(user_b)
 
         user_a.sent[0].should.deep.equal({
-          type: 'peer_joined'
+          type: 'room_peer_add'
           room: 'room'
           user: 'b'
           pending: false
@@ -199,7 +199,7 @@ describe 'Rooms', () ->
         room.invite(user_b, new Promise(() ->))
 
         user_a.sent[0].should.deep.equal({
-          type: 'peer_joined'
+          type: 'room_peer_add'
           room: 'room'
           user: 'b'
           pending: true
@@ -213,9 +213,10 @@ describe 'Rooms', () ->
 
         return Promise.delay(null, 10).then () ->
           user_a.sent[0].should.deep.equal({
-            type: 'peer_accepted'
+            type: 'room_peer_update'
             room: 'room'
             user: 'b'
+            pending: false
           })
 
           return
@@ -227,7 +228,7 @@ describe 'Rooms', () ->
         room.leave(user_b)
 
         user_a.sent[0].should.deep.equal({
-          type: 'peer_left'
+          type: 'room_peer_rm'
           room: 'room'
           user: 'b'
         })
@@ -243,7 +244,7 @@ describe 'Rooms', () ->
         user_b.emit('status_changed')
 
         user_a.sent[0].should.deep.equal({
-          type: 'peer_status'
+          type: 'room_peer_update'
           room: 'room'
           user: 'b'
           status: status
@@ -313,7 +314,7 @@ describe 'Rooms', () ->
         room.message(user_a, 'b', 'test', {})
 
         user_b.sent[0].should.deep.equal({
-          type: 'from'
+          type: 'room_peer_from'
           room: 'room'
           user: 'a'
           event: 'test'
@@ -348,7 +349,7 @@ describe 'Rooms', () ->
         room.room_status(user_a, 'a', 'b')
 
         user_b.sent[0].should.deep.equal({
-          type: 'room_status'
+          type: 'room_update'
           room: 'room'
           status: {a:'b'}
         })
