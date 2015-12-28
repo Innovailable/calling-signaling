@@ -42,34 +42,24 @@ The custom data in the positive answer is defined by the type of the request.
 Only this part of the answer will be represented in the documentation of
 answers below. Only answers containing custom data will be documented.
 
-### Register and Subscribe
+### Status
 
-Users can register to a namespace to be announced to all users subscribing this
-namespace. You can register and subscribe to any number of namespaces.
-
-Register a client to a namespace to get announced to other users:
+To update your own status
 
     // request
     {
-      "type": "register",
+      "type": "status",
       "tid": tid,
-      "namespace": "namespace_id"
+      "status": { .. status .. }
     }
 
-To undo the registration:
-
-    // request
-    {
-      "type": "unregister",
-      "tid": tid,
-      "namespace": "namespace_id"
-    }
+### Namespace
 
 Subscribe a client to a namespace to get announcements about other users:
 
     // request
     {
-      "type": "subscribe",
+      "type": "ns_subscribe",
       "tid": tid,
       "namespace": "namespace_id"
     }
@@ -86,7 +76,27 @@ To not get announcements on that namespace anymore:
 
     // request
     {
-      "type": "unsubscribe",
+      "type": "ns_unsubscribe",
+      "tid": tid,
+      "namespace": "namespace_id"
+    }
+
+### Namespace Users
+
+Register a client to a namespace to get announced to other users:
+
+    // request
+    {
+      "type": "ns_user_register",
+      "tid": tid,
+      "namespace": "namespace_id"
+    }
+
+To undo the registration:
+
+    // request
+    {
+      "type": "ns_user_unregister",
       "tid": tid,
       "namespace": "namespace_id"
     }
@@ -95,7 +105,7 @@ On new users:
 
     // event
     {
-      "type": "user_registered",
+      "type": "ns_user_add",
       "user": "user_id",
       "namespace": "namespace_id",
       "status": { .. status .. }
@@ -105,18 +115,9 @@ On user left:
 
     // event
     {
-      "type": "user_left",
+      "type": "ns_user_rm",
       "user": "user_id"
       "namespace": "namespace_id",
-    }
-
-To update your own status
-
-    // request
-    {
-      "type": "status",
-      "tid": tid,
-      "status": { .. status .. }
     }
 
 On status update of other users:
@@ -129,9 +130,11 @@ On status update of other users:
       "status": { .. status .. }
     }
 
+### Namespace Room
+
     // request
     {
-      "type": "register_room",
+      "type": "ns_room_register",
       "tid": tid,
       "namespace": "namespace_id",
       "room": "room_id"
@@ -139,7 +142,7 @@ On status update of other users:
 
     // event
     {
-      "type": "room_registered",
+      "type": "ns_room_add",
       "namespace": "namespace_id",
       "room": "room_id",
       "status": { .. status .. }
@@ -147,26 +150,52 @@ On status update of other users:
 
     // event
     {
-      "type": "room_status",
-      "namespace": "namespace_id",
-      "room": "room_id",
-      "status": { .. status .. }
-    }
-
-    // event
-    {
-      "type": "room_closed",
+      "type": "ns_room_rm",
       "namespace": "namespace_id",
       "room": "room_id"
     }
 
-### Room Joining
+    // event
+    {
+      "type": "ns_room_status",
+      "namespace": "namespace_id",
+      "room": "room_id",
+      "status": { .. status .. }
+    }
+
+    // event
+    {
+      "type": "ns_room_user_add",
+      "namespace": "namespace_id",
+      "room": "room_id",
+      "user": "user_id",
+      "status": { .. status .. }
+    }
+
+    // event
+    {
+      "type": "ns_room_user_rm",
+      "namespace": "namespace_id",
+      "room": "room_id",
+      "user": "user_id"
+    }
+
+    // event
+    {
+      "type": "ns_room_user_status",
+      "namespace": "namespace_id",
+      "room": "room_id",
+      "user": "user_id",
+      "status": { .. status .. }
+    }
+
+### Room
 
 To join a specific room:
 
     // request
     {
-      "type": "join",
+      "type": "room_join",
       "tid": tid,
       "room": "room_id"
       "status": { .. peer status ... }
@@ -176,8 +205,9 @@ To join a new empty room:
 
     // request
     {
-      "type": "join"
-      "tid": tid
+      "type": "room_join"
+      "tid": tid,
+      "status": { .. peer status ... }
     }
 
 Answer to joining:
@@ -194,18 +224,34 @@ Answer to joining:
       }
     }
 
-### Inside Room
-
     // request
     {
-      "type": "leave",
+      "type": "room_leave",
       "tid": tid,
       "room": "room_id"
     }
 
+    // request
+    {
+      "type": "room_status",
+      "room": "room_id",
+      "key": "key_id",
+      "value": value
+    }
+
+    // request
+    {
+      "type": "room_status",
+      "room": "room_id",
+      "key": "key_id",
+      "value": value,
+      "check": true,
+      "previous": value
+    }
+
     // event
     {
-      "type": "peer_joined",
+      "type": "room_peer_add",
       "room": "room_id",
       "user": "user_id",
       "pending": true|false
@@ -214,28 +260,28 @@ Answer to joining:
 
     // event
     {
-      "type": "peer_accepted",
+      "type": "room_peer_accepted",
       "room": "room_id",
       "user": "user_id"
     }
 
     // event
     {
-      "type": "peer_left",
+      "type": "room_peer_rm",
       "room": "room_id",
       "user": "user_id"
     }
 
     // request
     {
-      "type": "peer_status",
+      "type": "room_peer_status",
       "room": "room_id",
       "status": { .. status .. }
     }
 
     // event
     {
-      "type": "peer_status",
+      "type": "room_peer_status",
       "room": "room_id",
       "user": "user_id",
       "status": { .. status .. }
@@ -243,7 +289,7 @@ Answer to joining:
 
     // request
     {
-      "type": "to",
+      "type": "room_peer_to",
       "tid": tid,
       "room": "room_id",
       "user": "user_id",
@@ -253,7 +299,7 @@ Answer to joining:
 
     // event
     {
-      "type": "from",
+      "type": "room_peer_from",
       "room": "room_id",
       "user": "user_id",
       "event": "event_id",
@@ -264,17 +310,9 @@ Answer to joining:
 
     // request
     {
-      "type": "invite",
+      "type": "invite_send",
       "tid": tid,
       "room": "room_id",
-      "user": "user_id",
-      "data": { .. custom data .. }
-    }
-
-    // request
-    {
-      "type": "invite",
-      "tid": tid,
       "user": "user_id",
       "data": { .. custom data .. }
     }
@@ -299,7 +337,7 @@ Answer to joining:
 
     // event
     {
-      "type": "invited",
+      "type": "invite_incoming",
       "handle": invite_handle,
       "user": "user_id",
       "status": { .. status of inviting user .. },
