@@ -67,8 +67,20 @@ Subscribe a client to a namespace to get announcements about other users:
 
     // answer
     {
-      "user_id": { .. status .. },
-      ..
+      "users": {
+        "user_id": { .. user status .. },
+        ..
+      },
+      "rooms": {
+        "room_id": {
+          "status": { .. room status .. }
+          "peers": {
+            "status": { .. peer status .. },
+            "pending": true|false
+          }
+        },
+        ..
+      }
     }
 
 To not get announcements on that namespace anymore:
@@ -153,7 +165,7 @@ On status update of other users:
       "namespace": "namespace_id",
       "room": "room_id",
       "status": { .. room status .. }
-      "users": {
+      "peers": {
         "user_id": {
           "status": { ..  user status .. },
           "pending": true|false

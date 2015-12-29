@@ -40,11 +40,15 @@ class TestServer
 
 class TestRoom extends EventEmitter
 
-  constructor: (@id) ->
-    @users = {}
+  constructor: (@id, @status={}) ->
+    @peers = {}
 
   invite: (user, promise) ->
-    @users[user.id] = promise
+    @peers[user.id] = promise
+    return
+
+  add_peer: (user_id, status={}, pending=false) ->
+    return @peers[user_id] = new TestPeer(user_id, status, pending)
 
   peers_object: () ->
     return {}
@@ -64,9 +68,18 @@ class TestRooms
     return room
 
 
+class TestPeer extends EventEmitter
+
+  constructor: (id, @status={}, @pending=false) ->
+    @user = {
+      id: id
+    }
+
+
 module.exports = {
   TestUser: TestUser
   TestServer: TestServer
   TestRooms: TestRooms
   TestRoom: TestRoom
+  TestPeer: TestPeer
 }

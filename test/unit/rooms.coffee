@@ -372,16 +372,16 @@ describe 'Rooms', () ->
 
       it 'should set status on joining', () ->
         room.join(user_a, {a: 'b'})
-        room.users['a'].status.should.deep.equal({a: 'b'})
+        room.peers['a'].status.should.deep.equal({a: 'b'})
 
 
       it 'should be be able to change status', () ->
         return new Promise (resolve) ->
           room.join(user_a)
 
-          room.users['a'].status.should.be.empty
+          room.peers['a'].status.should.be.empty
 
-          room.users['a'].on 'status_changed', (status) ->
+          room.peers['a'].on 'status_changed', (status) ->
             status.should.deep.equal({a: 'b'})
             resolve()
 

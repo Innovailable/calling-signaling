@@ -23,6 +23,11 @@ class RoomUser extends EventEmitter
     return
 
 
+  accept: () ->
+    @pending = false
+    @emit('accepted')
+
+
   set_status: (status) ->
     @peer_status = status
     @update_status()
@@ -48,14 +53,14 @@ class RoomUser extends EventEmitter
 class Room extends EventEmitter
 
   constructor: (@id) ->
-    @users = {}
+    @peers = {}
     @status = {}
 
     return
 
 
   add_user: (user, status, pending) ->
-    if @users[user.id]?
+    if @peers[user.id]?
       throw new Error("User is already in room")
 
     room_user = new RoomUser(user, status, pending)
@@ -79,7 +84,9 @@ class Room extends EventEmitter
       status: room_user.status
     })
 
-    @users[user.id] = room_user
+    @peers[user.id] = room_user
+
+    @emit('new_peer', room_user)
 
     return room_user
 
@@ -109,7 +116,7 @@ class Room extends EventEmitter
           pending: false
         })
 
-        room_user.pending = false
+        room_user.accept()
       else
         @leave(user)
     .catch () =>
@@ -122,7 +129,7 @@ class Room extends EventEmitter
   peers_object: (exclude) ->
     peers = {}
 
-    for user_id, user of @users
+    for user_id, user of @peers
       if user_id == exclude
         continue
 
@@ -135,13 +142,13 @@ class Room extends EventEmitter
 
 
   leave: (user) ->
-    room_user = @users[user.id]
+    room_user = @peers[user.id]
 
     if not room_user?
       throw new Error("User was not in room")
 
     room_user.destroy()
-    delete @users[user.id]
+    delete @peers[user.id]
 
     @broadcast({
       type: 'room_peer_rm'
@@ -149,14 +156,14 @@ class Room extends EventEmitter
       user: user.id
     })
 
-    if is_empty(@users)
+    if is_empty(@peers)
       @emit('empty')
 
     return
 
 
   broadcast: (msg, exclude) ->
-    for user_id, user of @users
+    for user_id, user of @peers
       if user_id == exclude
         continue
 
@@ -169,7 +176,7 @@ class Room extends EventEmitter
 
 
   message: (user, to_id, event, data) ->
-    to_user = @users[to_id]
+    to_user = @peers[to_id]
 
     if not to_user?
       throw new Error("Unknown recipient")
@@ -204,7 +211,7 @@ class Room extends EventEmitter
 
 
   peer_status: (user, status) ->
-    room_user = @users[user.id]
+    room_user = @peers[user.id]
 
     if not user?
       throw new Error("User not in room")

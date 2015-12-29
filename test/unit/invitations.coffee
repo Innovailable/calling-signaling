@@ -214,7 +214,7 @@ describe 'Invitations', () ->
 
   it 'should put invited user into room', () ->
     invites.invite(user_a, 'b', 'r', {})
-    rooms.rooms['r'].users['b'].should.exist
+    rooms.rooms['r'].peers['b'].should.exist
 
 
   it 'should resolve invite promise to `true` on accept', () ->
@@ -226,7 +226,7 @@ describe 'Invitations', () ->
 
     invites.accept(user_b, b_handle)
 
-    return rooms.rooms['r'].users['b'].should.become(true)
+    return rooms.rooms['r'].peers['b'].should.become(true)
 
 
   it 'should resolve invite promise to `false` on deny', () ->
@@ -238,7 +238,7 @@ describe 'Invitations', () ->
 
     invites.deny(user_b, b_handle)
 
-    return rooms.rooms['r'].users['b'].should.become(false)
+    return rooms.rooms['r'].peers['b'].should.become(false)
 
 
   it 'should resolve invite promise to `false` on cancel', () ->
@@ -248,7 +248,7 @@ describe 'Invitations', () ->
 
     invites.cancel(user_a, a_handle)
 
-    return rooms.rooms['r'].users['b'].should.become(false)
+    return rooms.rooms['r'].peers['b'].should.become(false)
 
 
   it 'should test commands'
