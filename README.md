@@ -13,15 +13,6 @@ There are three types of messages:
 * `answer` messages responding to a request
 * `event` messages from the server to the client
 
-The server initiates the communication with the following message:
-
-    // event
-    {
-      "type": "hello",
-      "id": own_user_id,
-      "server": "server name"
-    }
-
 Each `request` can have a `tid` field. If this field is present the server will
 send an answer which is of one of the following formats.
 
@@ -43,9 +34,24 @@ The custom data in the positive answer is defined by the type of the request.
 Only this part of the answer will be represented in the documentation of
 answers below. Only answers containing custom data will be documented.
 
+The following sections describes all implemented requests and events. They are
+implemented in modules which can be removed or extended with minimal
+dependencies.
+
+### Hello
+
+The server initiates the communication with the following message.
+
+    // event
+    {
+      "type": "hello",
+      "id": own_user_id,
+      "server": "server name"
+    }
+
 ### Status
 
-To update your own global status
+To update your own global status.
 
     // request
     {
@@ -56,7 +62,10 @@ To update your own global status
 
 ### Namespace
 
-Subscribe a client to a namespace to get announcements about other users:
+#### Subscribing
+
+Subscribe a client to a namespace to get announcements about other users and
+rooms.
 
     // request
     {
@@ -83,7 +92,7 @@ Subscribe a client to a namespace to get announcements about other users:
       }
     }
 
-To not get announcements on that namespace anymore:
+To not get announcements on that namespace anymore.
 
     // request
     {
@@ -92,9 +101,9 @@ To not get announcements on that namespace anymore:
       "namespace": "namespace_id"
     }
 
-### Namespace Users
+#### Users
 
-Register a client to a namespace to get announced to other users:
+Register a client to a namespace to get announced to other users.
 
     // request
     {
@@ -103,7 +112,7 @@ Register a client to a namespace to get announced to other users:
       "namespace": "namespace_id"
     }
 
-To undo the registration:
+To undo the registration.
 
     // request
     {
@@ -112,7 +121,7 @@ To undo the registration:
       "namespace": "namespace_id"
     }
 
-On new users:
+On new users.
 
     // event
     {
@@ -122,7 +131,7 @@ On new users:
       "status": { .. status .. }
     }
 
-On user left:
+On user left.
 
     // event
     {
@@ -131,17 +140,19 @@ On user left:
       "user": "user_id"
     }
 
-On status update of other users:
+On status update of other users.
 
     // event
     {
-      "type": "user_update",
+      "type": "ns_user_update",
       "namespace": "namespace_id",
       "user": "user_id",
       "status": { .. status .. }
     }
 
-### Namespace Room
+#### Room
+
+To announce a room to subscribers.
 
     // request
     {
@@ -151,6 +162,8 @@ On status update of other users:
       "room": "room_id"
     }
 
+To undo the announcement in the namespace.
+
     // request
     {
       "type": "ns_room_unregister",
@@ -158,6 +171,8 @@ On status update of other users:
       "namespace": "namespace_id",
       "room": "room_id"
     }
+
+Event which subscribers to the namespace receive once the room is registered.
 
     // event
     {
@@ -174,12 +189,16 @@ On status update of other users:
       }
     }
 
+Room is emptied or was unregistered from the namespace.
+
     // event
     {
       "type": "ns_room_rm",
       "namespace": "namespace_id",
       "room": "room_id"
     }
+
+Changed status of the room.
 
     // event
     {
@@ -188,6 +207,8 @@ On status update of other users:
       "room": "room_id",
       "status": { .. room status .. }
     }
+
+A user entered the room. If `pending=true` the peer is only invited.
 
     // event
     {
@@ -199,6 +220,8 @@ On status update of other users:
       "pending": true|false
     }
 
+A user left the room.
+
     // event
     {
       "type": "ns_room_user_rm",
@@ -206,6 +229,8 @@ On status update of other users:
       "room": "room_id",
       "user": "user_id"
     }
+
+Changed status and/or invitation was accepted.
 
     // event
     {
@@ -219,7 +244,8 @@ On status update of other users:
 
 ### Room
 
-To join a room:
+To join a room. If you do not set a room id the server will create an empty room
+with a random room id.
 
     // request
     {
@@ -241,12 +267,17 @@ To join a room:
       }
     }
 
+To leave the room.
+
     // request
     {
       "type": "room_leave",
       "tid": tid,
       "room": "room_id"
     }
+
+Change the status of the room. Use `check=true` and `previous` to protect
+against simple data races.
 
     // request
     {
@@ -258,12 +289,18 @@ To join a room:
       [ "previous": value ]
     }
 
+The status of the room was updated.
+
     // status
     {
       "type": "room_update",
       "room": "room_id",
       "status": { .. room status .. }
     }
+
+A peer entered the room. When `pending=true` the peer is only invited and did
+not accept yet. You will not be able to exchange signaling messages with such
+peers.
 
     // event
     {
@@ -274,6 +311,8 @@ To join a room:
       "status": { .. status .. }
     }
 
+A peer left the room.
+
     // event
     {
       "type": "room_peer_rm",
@@ -281,13 +320,28 @@ To join a room:
       "user": "user_id"
     }
 
+To set your own status in the room. It will overload your global status. If your
+global status contains keys which are also in the room status it will be
+overwritten.
+
     // request
+    {
+      "type": "room_peer_status",
+      "room": "room_id",
+      "status": { .. status .. }
+    }
+
+A peer changed its status and/or accepted an invitation.
+
+    // event
     {
       "type": "room_peer_update",
       "room": "room_id",
       [ "pending": false, ]
       [ "status": { .. status .. } ]
     }
+
+Send a signaling message to another peer.
 
     // request
     {
@@ -299,6 +353,8 @@ To join a room:
       "data": { .. custom data .. }
     }
 
+Receive a signaling message to another peer.
+
     // event
     {
       "type": "room_peer_from",
@@ -309,6 +365,9 @@ To join a room:
     }
 
 ### Invites
+
+Invite a user into a room. You will receive a handle with which the invitation
+is identified in subsequent requests and events.
 
     // request
     {
@@ -324,6 +383,16 @@ To join a room:
       "handle": invite_handle
     }
 
+Cancel an invitation which you sent.
+
+    // request
+    {
+      "type": "invite_cancel",
+      "handle": invite_handle
+    }
+
+An invitation was either denied or accepted.
+
     // event
     {
       "type": "invite_response",
@@ -331,11 +400,8 @@ To join a room:
       "accepted": true|false
     }
 
-    // request
-    {
-      "type": "invite_cancel",
-      "handle": invite_handle
-    }
+Incoming invitation. Contains the user which sent it, its status and user
+specific data which can be supplied when the invitation is sent.
 
     // event
     {
@@ -346,6 +412,8 @@ To join a room:
       "data": { .. custom data .. }
     }
 
+Accept an invitation.
+
     // request
     {
       "type": "invite_accept",
@@ -353,11 +421,29 @@ To join a room:
       "status": { .. peer status .. }
     }
 
+    // answer
+    {
+      "room": "room_id",
+      "status": { .. room status .. },
+      "peers": {
+        "user_id": {
+          "status": { .. user status .. },
+          "pending": true|false
+        }
+        ..
+      }
+    }
+
+Deny an invitation.
+
     // request
     {
       "type": "invite_deny",
       "handle": invite_handle,
     }
+
+An invitation was cancelled. Either the user which sent the invitation left, the
+room was emptied or the user cancelled the invitation manually.
 
     // event
     {
@@ -366,6 +452,9 @@ To join a room:
     }
 
 ### Ping
+
+A command whose only purpose it is to send an answer. Can be used as heartbeat
+and connection check.
 
     // request
     {
