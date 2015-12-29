@@ -195,7 +195,8 @@ On status update of other users:
       "namespace": "namespace_id",
       "room": "room_id",
       "user": "user_id",
-      "status": { .. user status .. }
+      "status": { .. user status .. },
+      "pending": true|false
     }
 
     // event
