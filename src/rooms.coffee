@@ -1,7 +1,7 @@
 {EventEmitter} = require('events')
 {is_empty} = require('./helper')
 equal = require('deep-equal')
-
+uuid = require('node-uuid')
 
 class RoomUser extends EventEmitter
 
@@ -227,15 +227,20 @@ class RoomManager
     @rooms = {}
 
     server.command 'room_join', {
-      room: 'string'
+      room: ['string', 'undefined']
       status: ['object', 'undefined']
     }, (user, msg) =>
+      if msg.room?
+        room = msg.room
+      else
+        room = uuid.v4()
+
       if msg.status?
         status = msg.status
       else
         status = {}
 
-      room = @get_room(msg.room, true)
+      room = @get_room(room, true)
       return room.join(user, status)
 
     server.command 'room_leave', {

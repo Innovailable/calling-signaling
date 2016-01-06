@@ -36,6 +36,9 @@ describe 'Rooms', () ->
       })
 
 
+    it 'should let users join without room name'
+
+
     it 'should let users leave', () ->
       server.trigger(user_a, {type: 'room_join', room: 'r'})
       server.trigger(user_a, {type: 'room_leave', room: 'r'})
