@@ -566,3 +566,20 @@ describe 'Registry', () ->
         }
       })
 
+    it 'should create new namespace using `get_namespace()`', () ->
+      ns = registry.get_namespace('test', true)
+
+      ns.id.should.equal('test')
+      ns.should.be.an.instanceof(Namespace)
+
+
+    it 'should find existing namespace using `get_namespace()`', () ->
+      ns1 = registry.get_namespace('test', true)
+
+      ns1.id.should.equal('test')
+      ns1.should.be.an.instanceof(Namespace)
+
+      ns2 = registry.get_namespace('test', true)
+
+      ns2.should.equal(ns1)
+

@@ -355,7 +355,7 @@ class Registry
 
     server.command 'ns_room_register', {
       namespace: 'string'
-      room: 'room'
+      room: 'string'
     }, (user, msg) =>
       namespace = @get_namespace(msg.namespace, true)
       room = @rooms.get_room(msg.room)
@@ -363,6 +363,7 @@ class Registry
 
     server.command 'ns_room_unregister', {
       namespace: 'string'
+      room: 'string'
     }, (user, msg) =>
       namespace = @get_namespace(msg.namespace, false)
       room = @rooms.get_room(msg.room)
@@ -386,7 +387,7 @@ class Registry
 
     if not namespace?
       if create
-        namespace = @namespaces[ns_id] = new Namespace()
+        namespace = @namespaces[ns_id] = new Namespace(ns_id)
 
         namespace.on 'empty', () =>
           delete @namespaces[ns_id]
