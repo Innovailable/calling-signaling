@@ -1,4 +1,5 @@
 EventEmitter = require('events').EventEmitter
+{Promise} = require('bluebird')
 
 ###*
 # A signaling channel using WebSockets. Wraps around `ws` WebSockets. Reference implementation of a channel.
@@ -45,11 +46,11 @@ class exports.WebsocketChannel extends EventEmitter
   ###
   send: (data) ->
     msg = JSON.stringify(data)
-    @ws.send(msg)
+    return Promise.promisify(@ws.send).call(@ws, msg)
 
   ###*
   # Close the connection to the client
   # @method close
   ###
   close: () ->
-    @ws.close()
+    return Promise.promisify(@ws.close).call(@ws)
