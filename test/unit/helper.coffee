@@ -34,9 +34,6 @@ class TestServer
   trigger: (user, msg) ->
     return @commands[msg.type](user, msg)
 
-  get_user: (id) ->
-    return @users[id]
-
 
 class TestRoom extends EventEmitter
 

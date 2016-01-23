@@ -116,7 +116,7 @@ class InvitationManager
 
 
   invite: (user, to_id, room_id, data) ->
-    to = @server.get_user(to_id)
+    to = @server.users[to_id]
 
     if not to?
       throw new Error("Unknown recipient")
