@@ -104,11 +104,11 @@ class Room extends EventEmitter
   invite: (user, promise) ->
     room_user = @add_user(user, {}, true)
 
-    promise.then (accepted) =>
+    promise.then (status) =>
       if not room_user.active
         return
 
-      if accepted
+      if status?
         @broadcast({
           type: 'room_peer_update'
           room: @id
@@ -116,9 +116,12 @@ class Room extends EventEmitter
           pending: false
         })
 
+        room_user.set_status(status)
         room_user.accept()
+
       else
         @leave(user)
+
     .catch () =>
       if room_user.active
         @leave(user)

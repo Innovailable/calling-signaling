@@ -36,7 +36,7 @@ class Invitation
 
 
   cancel: () ->
-    @resolve(false)
+    @resolve()
 
     @to.send({
       type: 'invite_cancelled'
@@ -46,8 +46,8 @@ class Invitation
     return
 
 
-  accept: () ->
-    @resolve(true)
+  accept: (status) ->
+    @resolve(status)
 
     @from.send({
       type: 'invite_response'
@@ -55,15 +55,11 @@ class Invitation
       accepted: true
     })
 
-    return {
-      room: @room.id
-      peers: @room.peers_object(@to.id)
-      status: @room.status
-    }
+    return
 
 
   deny: () ->
-    @resolve(false)
+    @resolve()
 
     @from.send({
       type: 'invite_response'
@@ -106,8 +102,9 @@ class InvitationManager
 
     @server.command 'invite_accept', {
       handle: 'number'
+      status: 'object'
     }, (user, msg) =>
-      return @accept(user, msg.handle)
+      return @accept(user, msg.handle, msg.status)
 
     @server.command 'invite_deny', {
       handle: 'number'
@@ -157,13 +154,13 @@ class InvitationManager
     return invitation.cancel()
 
 
-  accept: (user, handle) ->
+  accept: (user, handle, status) ->
     invitation = user.invites.in[handle]
 
     if not invitation?
       throw new Error("Invalid invitation handle")
 
-    return invitation.accept()
+    return invitation.accept(status)
 
 
   deny: (user, handle) ->
