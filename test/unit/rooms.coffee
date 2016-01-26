@@ -262,11 +262,17 @@ describe 'Rooms', () ->
         user_a.sent.length.should.equal(0)
 
 
-      it 'should not notify users who are pending', () ->
+      it 'should notify users who are pending', () ->
         room.invite(user_a, new Promise(() ->))
         room.join(user_b)
 
-        user_a.sent.length.should.equal(0)
+        user_a.sent[0].should.deep.equal({
+          type: 'room_peer_add'
+          room: 'room'
+          user: 'b'
+          status: {}
+          pending: false
+        })
 
 
     describe 'sanity checks', () ->

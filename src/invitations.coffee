@@ -136,8 +136,10 @@ class InvitationManager
     to.send({
       type: 'invite_incoming'
       handle: to_handle
-      user: user.id
-      status: user.status
+      room: room.id
+      peers: room.peers_object()
+      status: room.status
+      sender: user.id
       data: data
     })
 

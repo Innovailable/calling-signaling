@@ -167,9 +167,6 @@ class Room extends EventEmitter
       if user_id == exclude
         continue
 
-      if user.pending
-        continue
-
       user.user.send(msg)
 
     return

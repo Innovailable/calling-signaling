@@ -60,7 +60,9 @@ describe 'Invitations', () ->
 
     msg = user_b.sent[0]
     msg.type.should.equal('invite_incoming')
-    msg.user.should.equal('a')
+    msg.sender.should.equal('a')
+    msg.room.should.equal('r')
+    msg.peers.should.deep.equal({})
     msg.status.should.deep.equal({})
     msg.data.should.deep.equal({})
 
