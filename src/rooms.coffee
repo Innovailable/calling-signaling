@@ -114,7 +114,7 @@ class Room extends EventEmitter
           room: @id
           user: user.id
           pending: false
-        })
+        }, user.id)
 
         room_user.set_status(status)
         room_user.accept()
