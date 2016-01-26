@@ -137,7 +137,7 @@ class InvitationManager
       type: 'invite_incoming'
       handle: to_handle
       room: room.id
-      peers: room.peers_object()
+      peers: room.peers_object(to_id)
       status: room.status
       sender: user.id
       data: data
