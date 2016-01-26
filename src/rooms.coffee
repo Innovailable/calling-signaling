@@ -74,7 +74,7 @@ class Room extends EventEmitter
         room: @id
         user: user.id
         status: room_user.status
-      })
+      }, user.id)
 
     @broadcast({
       type: 'room_peer_add'
@@ -82,7 +82,7 @@ class Room extends EventEmitter
       pending: pending
       user: user.id
       status: room_user.status
-    })
+    }, user.id)
 
     @peers[user.id] = room_user
 
