@@ -6,6 +6,7 @@
 {RoomManager} = require('./rooms')
 {InvitationManager} = require('./invitations')
 {WebsocketChannel} = require('./websocket_channel')
+{Promise} = require('bluebird')
 
 WebSocketServer = require('ws').Server
 
@@ -28,14 +29,20 @@ class CallingServer extends Server
 
 class CallingWebsocketServer extends CallingServer
 
-  constructor: (port=8080, host='0.0.0.0') ->
+  constructor: () ->
     super()
 
-    @wss = new WebSocketServer({port: port, host: host})
 
-    @wss.on 'connection', (ws) =>
-      channel = new WebsocketChannel(ws)
-      @create_user(channel)
+  listen: (port=8080, host='0.0.0.0') ->
+    return new Promise (resolve, reject) =>
+      @wss = new WebSocketServer({port: port, host: host}, resolve)
+
+      @wss.on 'error', (err) ->
+        reject(err)
+
+      @wss.on 'connection', (ws) =>
+        channel = new WebsocketChannel(ws)
+        @create_user(channel)
 
 
   close: () ->
