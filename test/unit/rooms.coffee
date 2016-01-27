@@ -174,7 +174,7 @@ describe 'Rooms', () ->
 
 
       it 'should not list invited peer which rejceted', () ->
-        room.invite(user_a, Promise.resolve(false))
+        room.invite(user_a, Promise.resolve())
 
         return Promise.delay(null, 10).then () ->
           res = room.join(user_b)

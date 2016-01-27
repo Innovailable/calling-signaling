@@ -59,6 +59,18 @@ class Room extends EventEmitter
     return
 
 
+  user_check: (user) ->
+    room_user = @peers[user.id]
+
+    if not room_user?
+      throw new Error("You are not in the room")
+
+    if room_user.pending
+      throw new Error("You are only invited to the room")
+
+    return room_user
+
+
   add_user: (user, status, pending) ->
     if @peers[user.id]?
       throw new Error("User is already in room")
@@ -66,7 +78,7 @@ class Room extends EventEmitter
     room_user = new RoomUser(user, status, pending)
 
     room_user.on 'left', () =>
-      @leave(user)
+      @remove(room_user)
 
     room_user.on 'status_changed', () =>
       @broadcast({
@@ -120,11 +132,11 @@ class Room extends EventEmitter
         room_user.accept()
 
       else
-        @leave(user)
+        @remove(room_user)
 
     .catch () =>
       if room_user.active
-        @leave(user)
+        @remove(room_user)
 
     return
 
@@ -145,18 +157,20 @@ class Room extends EventEmitter
 
 
   leave: (user) ->
-    room_user = @peers[user.id]
+    room_user = @user_check(user)
+    @remove(room_user)
 
-    if not room_user?
-      throw new Error("User was not in room")
+
+  remove: (room_user) ->
+    user_id = room_user.user.id
 
     room_user.destroy()
-    delete @peers[user.id]
+    delete @peers[user_id]
 
     @broadcast({
       type: 'room_peer_rm'
       room: @id
-      user: user.id
+      user: user_id
     })
 
     if is_empty(@peers)
@@ -176,6 +190,8 @@ class Room extends EventEmitter
 
 
   message: (user, to_id, event, data) ->
+    @user_check(user)
+
     to_user = @peers[to_id]
 
     if not to_user?
@@ -196,6 +212,8 @@ class Room extends EventEmitter
 
 
   room_status: (user, key, value, check, previous) ->
+    @user_check(user)
+
     if check and not equal(@status[key], previous)
       throw new Error("Status not in expected state")
 
@@ -211,10 +229,7 @@ class Room extends EventEmitter
 
 
   peer_status: (user, status) ->
-    room_user = @peers[user.id]
-
-    if not user?
-      throw new Error("User not in room")
+    room_user = @user_check(user)
 
     room_user.set_status(status)
 

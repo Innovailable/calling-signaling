@@ -92,9 +92,7 @@ describe 'Invitations', () ->
     msg.type.should.equal('invite_incoming')
     b_handle = msg.handle
 
-    res = invites.accept(user_b, b_handle)
-
-    res.room.should.equal('r')
+    invites.accept(user_b, b_handle)
 
     msg = user_a.sent[0]
     msg.type.should.equal('invite_response')
@@ -219,19 +217,19 @@ describe 'Invitations', () ->
     rooms.rooms['r'].peers['b'].should.exist
 
 
-  it 'should resolve invite promise to `true` on accept', () ->
+  it 'should resolve invite promise to status on accept', () ->
     invites.invite(user_a, 'b', 'r', {})
 
     msg = user_b.sent[0]
     msg.type.should.equal('invite_incoming')
     b_handle = msg.handle
 
-    invites.accept(user_b, b_handle)
+    invites.accept(user_b, b_handle, {a: 'b'})
 
-    return rooms.rooms['r'].peers['b'].should.become(true)
+    return rooms.rooms['r'].peers['b'].should.become({a: 'b'})
 
 
-  it 'should resolve invite promise to `false` on deny', () ->
+  it 'should resolve invite promise to `undefined` on deny', () ->
     invites.invite(user_a, 'b', 'r', {})
 
     msg = user_b.sent[0]
@@ -240,7 +238,7 @@ describe 'Invitations', () ->
 
     invites.deny(user_b, b_handle)
 
-    return rooms.rooms['r'].peers['b'].should.become(false)
+    return rooms.rooms['r'].peers['b'].should.become(undefined)
 
 
   it 'should resolve invite promise to `false` on cancel', () ->
@@ -250,7 +248,7 @@ describe 'Invitations', () ->
 
     invites.cancel(user_a, a_handle)
 
-    return rooms.rooms['r'].peers['b'].should.become(false)
+    return rooms.rooms['r'].peers['b'].should.become(undefined)
 
 
   it 'should test commands'
