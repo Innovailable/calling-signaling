@@ -23,5 +23,6 @@
     "url": "https://github.com/Innovailable/calling-signaling.git"
   },
   "bin": {
+    "calling-signaling": "dist/main.js"
   }
 }

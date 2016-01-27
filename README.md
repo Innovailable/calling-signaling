@@ -1,6 +1,9 @@
 # calling-signaling
 
-This is a signaling server with the following feature set:
+## What is this?
+
+This is a (WebRTC) signaling server with support for calling. It is developed
+and tested with [rtc-lib](https://github.com/Innovailable/rtc-lib).
 
 * rooms
   * abstraction of a multi or single user signaling session
@@ -27,10 +30,45 @@ This is a signaling server with the following feature set:
   * requests receive an answer or an error message from the server
   * async handling using transaction ids
 * modularized
-  * each function is implemented in seperate module
+  * each feature (rooms, invitations, ...) is implemented in seperate module
   * as few dependencies as possible
   * easily extendable
   * feature set can be adapted to use case
 
-It was developed to work with `rtc-lib`.
+## How to use?
+
+### Standalone with npm
+
+Install with
+
+  npm install -g calling-signaling
+
+And run with
+
+  calling-signaling
+
+### Standalone from git
+
+Install the dependencies with
+
+  npm install
+
+and run the server with
+
+  coffee src/main.coffee
+
+### As library
+
+To integrate the library into you node project install with
+
+  npm install calling-signaling
+
+And require in your source files
+
+  var calling = require('calling-signaling')
+  new calling.CallingWebsocketServer(8080, "0.0.0.0")
+
+You can also create servers with custom transports, custom feature sets and
+integrate your own modules. See `calling_server.coffee` to find out how to
+write your own server.
 

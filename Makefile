@@ -15,7 +15,7 @@ doc: init
 	node_modules/.bin/yuidoc --syntaxtype coffee -e .coffee -o doc src --themedir yuidoc-theme
 
 build: init
-	node_modules/.bin/coffee -o dist/ -c src/
+	node_modules/.bin/coffee -m -o dist/ -c src/
 	sed -i '1i#!/usr/bin/env node' dist/main.js
 
 test: init

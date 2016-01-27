@@ -1,0 +1,6 @@
+src
+doc
+Makefile
+*.tgz
+.npmignore
+test
