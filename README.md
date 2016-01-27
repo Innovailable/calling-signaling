@@ -41,32 +41,32 @@ and tested with [rtc-lib](https://github.com/Innovailable/rtc-lib).
 
 Install with
 
-  npm install -g calling-signaling
+    npm install -g calling-signaling
 
 And run with
 
-  calling-signaling
+    calling-signaling
 
 ### Standalone from git
 
 Install the dependencies with
 
-  npm install
+    npm install
 
 and run the server with
 
-  coffee src/main.coffee
+    coffee src/main.coffee
 
 ### As library
 
 To integrate the library into you node project install with
 
-  npm install calling-signaling
+    npm install calling-signaling
 
 And require in your source files
 
-  var calling = require('calling-signaling')
-  new calling.CallingWebsocketServer(8080, "0.0.0.0")
+    var calling = require('calling-signaling')
+    new calling.CallingWebsocketServer(8080, "0.0.0.0")
 
 You can also create servers with custom transports, custom feature sets and
 integrate your own modules. See `calling_server.coffee` to find out how to
