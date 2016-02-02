@@ -68,7 +68,19 @@ And require in your source files
     var calling = require('calling-signaling')
     new calling.CallingWebsocketServer(8080, "0.0.0.0")
 
-You can also create servers with custom transports, custom feature sets and
+You can also integrate the signaling server into express
+
+    var calling = require('calling-signaling');
+
+    var calling_server = new calling.CallingServer();
+
+    require('express-ws')(app);
+    app.ws('/signaling', function(ws) {
+        var channel = new WebsocketChannel(ws);
+        calling_server.create_user(channel);
+    });
+
+You can create servers with custom transports, custom feature sets and
 integrate your own modules. See `calling_server.coffee` to find out how to
 write your own server.
 
