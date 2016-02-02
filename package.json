@@ -1,7 +1,7 @@
 {
   "name": "calling-signaling",
   "description": "A WebRTC signaling server supporting calling",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "dependencies": {
     "bluebird": "^3.0.6",
     "deep-equal": "^1.0.1",
