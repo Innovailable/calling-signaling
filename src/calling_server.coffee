@@ -22,7 +22,7 @@ class CallingServer extends Server
     status_handler(@)
     ping_handler(@)
 
-    @rooms = new RoomManager(@)
+    @rooms = new RoomManager(@, 10 * 60 * 1000)
     @registry = new Registry(@, @rooms)
     @invitations = new InvitationManager(@, @rooms)
 
