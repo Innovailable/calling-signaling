@@ -3,7 +3,7 @@ BIND_HOST = process.env.BIND_HOST ? "0.0.0.0"
 
 {CallingWebsocketServer} = require('./calling_server')
 
-server = new CallingWebsocketServer(BIND_PORT, BIND_HOST)
+server = new CallingWebsocketServer()
 
-server.listen().then () ->
+server.listen(BIND_PORT, BIND_HOST).then () ->
   console.log("Listening on " + BIND_HOST + ":" + BIND_PORT)
