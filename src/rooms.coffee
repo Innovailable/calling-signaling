@@ -238,7 +238,7 @@ class Room extends EventEmitter
 
 class RoomManager
 
-  constructor: (server) ->
+  constructor: (server, @rm_delay=0) ->
     @rooms = {}
 
     server.command 'room_join', {
@@ -301,7 +301,15 @@ class RoomManager
         room = @rooms[room_id] = new Room(room_id)
 
         room.on 'empty', () =>
-          delete @rooms[room_id]
+          rm_room = () =>
+            delete @rooms[room_id]
+
+          if @rm_delay <= 0
+            rm_room()
+          else
+            timeout = setTimeout(rm_room, @rm_delay)
+            room.once 'new_peer', () ->
+              clearTimeout(timeout)
       else
         throw new Error("Room does not exist")
 

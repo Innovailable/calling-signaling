@@ -1,6 +1,7 @@
 {Promise} = require('bluebird')
 {TestUser, TestServer} = require('./helper')
 {RoomManager, Room, RoomUser} = require('../../src/rooms')
+sinon = require('sinon')
 
 describe 'Rooms', () ->
   user_a = null
@@ -15,10 +16,16 @@ describe 'Rooms', () ->
   describe 'RoomManager', () ->
     server = null
     rooms = null
+    clock = null
 
     beforeEach () ->
       server = new TestServer()
       rooms = new RoomManager(server)
+      clock = sinon.useFakeTimers()
+
+    afterEach () ->
+      clock.restore()
+
 
     it 'should let users join', () ->
       server.trigger(user_a, {type: 'room_join', room: 'r'})
@@ -101,6 +108,67 @@ describe 'Rooms', () ->
 
       res = server.trigger(user_c, {type: 'room_join', room: 'r'})
       res.status.should.deep.equal({a: 'b'})
+
+
+    it 'should be able to delay cleaning up rooms', () ->
+      rooms = new RoomManager(server, 1000)
+
+      # join room
+
+      server.trigger(user_a, {type: 'room_join', room: 'r'})
+      rooms.rooms.should.not.be.empty
+
+      # leave room
+
+      server.trigger(user_a, {type: 'room_leave', room: 'r'})
+      rooms.rooms.should.not.be.empty
+
+      # wait some
+
+      clock.tick(999)
+      rooms.rooms.should.not.be.empty
+
+      clock.tick(1)
+      rooms.rooms.should.be.empty
+
+
+    it 'should should not clean up room when user joins in delay', () ->
+      rooms = new RoomManager(server, 1000)
+
+      # join room
+
+      server.trigger(user_a, {type: 'room_join', room: 'r'})
+      rooms.rooms.should.not.be.empty
+
+      # leave room
+
+      server.trigger(user_a, {type: 'room_leave', room: 'r'})
+      rooms.rooms.should.not.be.empty
+
+      # wait some
+
+      clock.tick(999)
+      rooms.rooms.should.not.be.empty
+
+      # join existing room
+
+      server.trigger(user_b, {type: 'room_join', room: 'r'})
+
+      clock.tick(1)
+      rooms.rooms.should.not.be.empty
+
+      # leave again
+
+      server.trigger(user_b, {type: 'room_leave', room: 'r'})
+      rooms.rooms.should.not.be.empty
+
+      # wait some more
+
+      clock.tick(999)
+      rooms.rooms.should.not.be.empty
+
+      clock.tick(1)
+      rooms.rooms.should.be.empty
 
 
     it 'should let users change their status', () ->

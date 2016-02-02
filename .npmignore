@@ -4,3 +4,4 @@ Makefile
 *.tgz
 .npmignore
 test
+*.sw?
