@@ -1,12 +1,11 @@
 status_handler = (server) ->
   server.user_init (user) ->
-    user.status = {}
+    user.set_userdata('status', {})
 
   server.command 'status', {
     status: 'object'
   }, (user, msg) ->
-    user.status = msg.status
-    user.emit('status_changed', user.status)
+    user.set_userdata('status', msg.status)
 
 
 exports.status_handler = status_handler

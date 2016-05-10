@@ -311,8 +311,8 @@ describe 'Rooms', () ->
 
         status = {hello: 'world'}
 
-        user_b.status = status
-        user_b.emit('status_changed')
+        user_b.userdata.status = status
+        user_b.emit('userdata_changed', 'status', status)
 
         user_a.sent[0].should.deep.equal({
           type: 'room_peer_update'
@@ -449,17 +449,18 @@ describe 'Rooms', () ->
 
       it 'should set status on joining', () ->
         room.join(user_a, {a: 'b'})
-        room.peers['a'].status.should.deep.equal({a: 'b'})
+        room.peers['a'].merged_status().should.deep.equal({a: 'b'})
 
 
       it 'should be be able to change status', () ->
         return new Promise (resolve) ->
           room.join(user_a)
 
-          room.peers['a'].status.should.be.empty
+          room.peers['a'].merged_status().should.be.empty
 
-          room.peers['a'].on 'status_changed', (status) ->
-            status.should.deep.equal({a: 'b'})
+          room.peers['a'].on 'userdata_changed', (key, value) ->
+            key.should.equal("status")
+            value.should.deep.equal({a: 'b'})
             resolve()
 
           room.peer_status(user_a, {a: 'b'})
@@ -521,34 +522,37 @@ describe 'Rooms', () ->
 
       it 'should emit `status_changed` when user status changes', () ->
         return new Promise (resolve, reject) ->
-          room_user.on 'status_changed', (status) ->
-            status.should.deep.equal({a: 'b'})
-            room_user.status.should.deep.equal({a: 'b'})
+          room_user.on 'userdata_changed', (key, value) ->
+            key.should.equal("status")
+            value.should.deep.equal({a: 'b'})
+            room_user.merged_status().should.deep.equal({a: 'b'})
             resolve()
 
-          room_user.status.should.be.empty
+          room_user.merged_status().should.be.empty
 
-          test_user.status = {a: 'b'}
-          test_user.emit('status_changed')
+          status = {a: 'b'}
+          test_user.userdata.status = status
+          test_user.emit('userdata_changed', 'status', status)
 
 
       it 'should emit `status_changed` after `set_status()` was called', () ->
         return new Promise (resolve, reject) ->
-          room_user.on 'status_changed', (status) ->
-            status.should.deep.equal({a: 'b'})
-            room_user.status.should.deep.equal({a: 'b'})
+          room_user.on 'userdata_changed', (key, value) ->
+            key.should.equal("status")
+            value.should.deep.equal({a: 'b'})
+            room_user.merged_status().should.deep.equal({a: 'b'})
             resolve()
 
-          room_user.status.should.be.empty
+          room_user.merged_status().should.be.empty
 
           room_user.set_status({a: 'b'})
 
 
       it 'should overwrite user status with peer status', () ->
-        test_user.status = {a: 1, b: 1}
+        test_user.userdata.status = {a: 1, b: 1}
         room_user.set_status({b: 2, c: 2})
 
-        room_user.status.should.deep.equal({
+        room_user.merged_status().should.deep.equal({
           a: 1
           b: 2
           c: 2

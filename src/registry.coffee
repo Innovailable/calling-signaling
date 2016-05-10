@@ -24,14 +24,17 @@ class NamespaceRoom extends EventEmitter
 
       ns_room.peer_cleanup(@)
 
-    @peer_status_cb = (status) ->
-      namespace.broadcast({
+    @peer_userdata_cb = (key, value) ->
+      msg = {
         type: 'ns_room_peer_update'
         namespace: namespace.id
         room: room.id
         user: @user.id
-        status: @status
-      })
+      }
+
+      msg[key] = value
+
+      namespace.broadcast(msg)
 
     @peer_accept_cb = () ->
       namespace.broadcast({
@@ -61,14 +64,17 @@ class NamespaceRoom extends EventEmitter
       })
 
     @peer_cb = (peer) =>
-      @namespace.broadcast({
+      msg = {
         type: 'ns_room_peer_add'
         namespace: @namespace.id
         room: @room.id
         user: peer.user.id
-        status: peer.status
         pending: peer.pending
-      })
+      }
+
+      peer.get_userdata(msg)
+
+      @namespace.broadcast(msg)
 
       @peer_setup(peer)
 
@@ -91,13 +97,13 @@ class NamespaceRoom extends EventEmitter
 
   peer_setup: (peer) ->
     peer.on('left', @peer_left_cb)
-    peer.on('status_changed', @peer_status_cb)
+    peer.on('userdata_changed', @peer_userdata_cb)
     peer.on('accepted', @peer_accept_cb)
 
 
   peer_cleanup: (peer) ->
     peer.removeListener('left', @peer_left_cb)
-    peer.removeListener('status_changed', @peer_status_cb)
+    peer.removeListener('userdata_changed', @peer_userdata_cb)
     peer.removeListener('accepted', @peer_accept_cb)
 
 
@@ -127,9 +133,10 @@ class NamespaceRoom extends EventEmitter
 
     for peer_id, peer of @room.peers
       res[peer_id] = {
-        status: peer.status
         pending: peer.pending
       }
+
+      peer.get_userdata(res[peer_id])
 
     return res
 
@@ -180,8 +187,7 @@ class Namespace extends EventEmitter
     users = {}
 
     for user_id, entry of @registered
-      user = entry.user
-      users[user_id] = user.status
+      users[user_id] = entry.user.get_userdata()
 
     # list of registered rooms
 
@@ -229,27 +235,33 @@ class Namespace extends EventEmitter
 
     # notify subscribers
 
-    @broadcast({
+    msg = {
       type: 'ns_user_add'
       user: user.id
-      status: user.status
       namespace: @id
-    })
+    }
+
+    user.get_userdata(msg)
+
+    @broadcast(msg)
 
     # register user callbacks
 
-    status_change = () =>
-      @broadcast({
+    userdata_change = (key, value) =>
+      msg = {
         type: 'ns_user_update'
         user: user.id
         namespace: @id
-        status: user.status
-      })
+      }
+
+      msg[key] = value
+
+      @broadcast(msg)
 
     left = () =>
       @unregister_user(user)
 
-    user.on('status_changed', status_change)
+    user.on('userdata_changed', userdata_change)
     user.on('left', left)
 
     # register
@@ -257,7 +269,7 @@ class Namespace extends EventEmitter
     @registered[user.id] = {
       user: user
       cleanup: () ->
-        user.removeListener('status_changed', status_change)
+        user.removeListener('userdata_changed', userdata_change)
         user.removeListener('left', left)
     }
 
