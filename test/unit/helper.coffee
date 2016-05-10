@@ -4,11 +4,20 @@ class TestUser extends EventEmitter
 
   constructor: (@id) ->
     @sent = []
-    @status = {}
+    @userdata = {}
 
   send: (msg) ->
     @sent.push(msg)
     return
+
+  get_userdata: (obj={}) ->
+    for key, value of @userdata
+      obj[key] = value
+    return obj
+
+  set_userdata: (key, value) ->
+    @userdata[key] = value
+    @emit('userdata_changed', key, value)
 
 
 class TestServer
@@ -68,9 +77,14 @@ class TestRooms
 class TestPeer extends EventEmitter
 
   constructor: (id, @status={}, @pending=false) ->
-    @user = {
-      id: id
-    }
+    @user = new TestUser(id)
+
+  get_userdata: (obj={}) ->
+    if not obj.status?
+      obj.status = {}
+    for key, value of @status
+      obj.status[key] = value
+    return obj
 
 
 module.exports = {

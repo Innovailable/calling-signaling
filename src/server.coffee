@@ -28,6 +28,8 @@ class User extends EventEmitter
   constructor: (@id, @channel, @server) ->
     super()
 
+    @userdata = {}
+
     @channel.on 'message', (msg) =>
       @receive(msg)
 
@@ -98,6 +100,21 @@ class User extends EventEmitter
   leave: () ->
     @emit('left')
     @channel.close()
+
+
+  set_userdata: (key, value) ->
+    @userdata[key] = value
+    @emit('userdata_changed', key, value)
+
+
+  get_userdate: (obj={}) ->
+    for key, value of @userdata
+      if obj[key]?
+        throw new Error("Conflicting userdata")
+
+      obj[key] = value
+
+    return obj
 
 
 class Server extends EventEmitter
