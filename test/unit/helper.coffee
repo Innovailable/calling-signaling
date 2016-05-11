@@ -49,6 +49,8 @@ class TestRoom extends EventEmitter
   constructor: (@id, @status={}) ->
     @peers = {}
 
+  empty_check: () ->
+
   invite: (user, promise) ->
     @peers[user.id] = promise
     return

@@ -19,6 +19,7 @@ describe 'Rooms', () ->
     clock = null
 
     beforeEach () ->
+      security = {}
       server = new TestServer()
       rooms = new RoomManager(server)
       clock = sinon.useFakeTimers()
@@ -193,16 +194,58 @@ describe 'Rooms', () ->
 
 
   describe 'Security', () ->
+    server = null
+    rooms = null
+    security = null
 
-    it 'should not deny allowed users to join room id'
+    beforeEach () ->
+      security = {}
+      server = new TestServer()
+      rooms = new RoomManager(server, {security: security})
 
-    it 'should deny forbidden users to join room id'
+    it 'should not deny allowed users to join room id', () ->
+      security.join_room_id = spy = sinon.spy () -> true
 
-    it 'should not deny allowed users to join room'
+      expect(() -> server.trigger(user_a, {type: 'room_join', room: 'r'})).to.not.throw()
+      spy.calledWith(user_a, 'r').should.be.true
 
-    it 'should deny forbidden users to join room'
 
-    it 'should emit empty on room after denying join on new room'
+    it 'should deny forbidden users to join room id', () ->
+      security.join_room_id = spy = sinon.spy () -> false
+
+      expect(() -> server.trigger(user_a, {type: 'room_join', room: 'r'})).to.throw('Access denied')
+      spy.calledWith(user_a, 'r').should.be.true
+
+
+    it 'should not deny allowed users to join room', () ->
+      security.join_room = spy = sinon.spy () -> true
+
+      room = rooms.get_room('r', true)
+
+      expect(() -> server.trigger(user_a, {type: 'room_join', room: 'r'})).to.not.throw()
+      spy.calledWith(user_a, room).should.be.true
+
+
+    it 'should deny forbidden users to join room', () ->
+      security.join_room = spy = sinon.spy () -> false
+
+      room = rooms.get_room('r', true)
+
+      expect(() -> server.trigger(user_a, {type: 'room_join', room: 'r'})).to.throw('Access denied')
+      spy.calledWith(user_a, room).should.be.true
+
+    it 'should emit empty on room after denying join on new room', () ->
+      security.join_room = spy = sinon.spy () -> false
+
+      room = rooms.get_room('r', true)
+
+      listener_spy = sinon.spy()
+      room.once('empty', listener_spy)
+
+      expect(() -> server.trigger(user_a, {type: 'room_join', room: 'r'})).to.throw('Access denied')
+      spy.calledWith(user_a, room).should.be.true
+
+      listener_spy.calledOnce.should.be.true
 
 
   describe 'Room', () ->

@@ -1,6 +1,7 @@
-{TestUser, TestServer, TestRooms} = require('./helper')
+{TestUser, TestServer, TestRooms, TestRoom} = require('./helper')
 {InvitationManager} = require('../../src/invitations')
 {EventEmitter} = require('events')
+sinon = require('sinon')
 
 
 describe 'Invitations', () ->
@@ -11,11 +12,13 @@ describe 'Invitations', () ->
   server = null
   rooms = null
   invites = null
+  security = null
 
   beforeEach () ->
+    security = {}
     server = new TestServer()
     rooms = new TestRooms()
-    invites = new InvitationManager(server, rooms)
+    invites = new InvitationManager(server, rooms, {security: security})
 
     user_a = new TestUser('a')
     user_b = new TestUser('b')
@@ -219,14 +222,47 @@ describe 'Invitations', () ->
     return rooms.rooms['r'].peers['b'].should.become(undefined)
 
 
-  it 'should not deny allowed users to invite to room id'
+  it 'should not deny allowed users to invite to room id', () ->
+    security.invite_to_room_id = spy = sinon.spy () -> true
 
-  it 'should deny forbidden users to invite to room id'
+    expect(() -> invites.invite(user_a, 'b', 'r')).to.not.throw()
+    spy.calledWith(user_a, user_b, 'r').should.be.true
 
-  it 'should not deny allowed users to invite to room'
 
-  it 'should deny forbidden users to invite to room'
+  it 'should deny forbidden users to invite to room id', () ->
+    security.invite_to_room_id = spy = sinon.spy () -> false
 
-  it 'should emit empty on room after denying invite to new room'
+    expect(() -> invites.invite(user_a, 'b', 'r')).to.throw('Access denied')
+    spy.calledWith(user_a, user_b, 'r').should.be.true
+
+
+  it 'should not deny allowed users to invite to room', () ->
+    security.invite_to_room = spy = sinon.spy () -> true
+
+    rooms.rooms.r = room = new TestRoom('r')
+
+    expect(() -> invites.invite(user_a, 'b', 'r')).to.not.throw()
+    spy.calledWith(user_a, user_b, room).should.be.true
+
+
+  it 'should deny forbidden users to invite to room', () ->
+    security.invite_to_room = spy = sinon.spy () -> false
+
+    rooms.rooms.r = room = new TestRoom('r')
+
+    expect(() -> invites.invite(user_a, 'b', 'r')).to.throw('Access denied')
+    spy.calledWith(user_a, user_b, room).should.be.true
+
+
+  it 'should call `check_empty` on room after denying invitation to room', () ->
+    security.invite_to_room = spy = sinon.spy () -> false
+
+    rooms.rooms.r = room = new TestRoom('r')
+    room.empty_check = sinon.spy(room.empty_check)
+
+    expect(() -> invites.invite(user_a, 'b', 'r')).to.throw('Access denied')
+    spy.calledWith(user_a, user_b, room).should.be.true
+    room.empty_check.calledOnce.should.be.true
+
 
   it 'should test commands'
