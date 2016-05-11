@@ -4,22 +4,6 @@
 class Invitation
 
   constructor: (@from, @from_handle, @to, @to_handle, @room) ->
-    empty_handler = () =>
-      @resolve(false)
-
-      @from.send({
-        type: 'invite_response'
-        handle: @from_handle
-        accepted: false
-      })
-
-      @to.send({
-        type: 'invite_cancelled'
-        handle: @to_handle
-      })
-
-    @room.on('empty', empty_handler)
-
     @promise = new Promise (resolve, reject) =>
       @resolve = (accepted) =>
         if not @promise.isPending()
@@ -27,8 +11,6 @@ class Invitation
 
         delete @from.invites.out[@from_handle]
         delete @to.invites.in[@to_handle]
-
-        @room.removeListener('empty', empty_handler)
 
         resolve(accepted)
 
