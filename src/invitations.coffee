@@ -102,12 +102,12 @@ class InvitationManager
     if not to?
       throw new Error("Unknown recipient")
 
-    if security?.invite_to_room_id? and not security.invite_to_room_id(user, to, room_id)
+    if @security?.invite_to_room_id? and not @security.invite_to_room_id(user, to, room_id)
       throw new Error("Access denied")
 
     room = @rooms.get_room(room_id, true)
 
-    if security?.invite_to_room? and not security.invite_to_room(user, to, room)
+    if @security?.invite_to_room? and not @security.invite_to_room(user, to, room)
       room.empty_check()
       throw new Error("Access denied")
 
