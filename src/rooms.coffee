@@ -187,10 +187,14 @@ class Room extends EventEmitter
       user: user_id
     })
 
-    if is_empty(@peers)
-      @emit('empty')
+    @empty_check()
 
     return
+
+
+  empty_check: () ->
+    if is_empty(@peers)
+      @emit('empty')
 
 
   broadcast: (msg, exclude) ->
@@ -252,24 +256,35 @@ class Room extends EventEmitter
 
 class RoomManager
 
-  constructor: (server, @rm_delay=0) ->
+  constructor: (server, options={}) ->
     @rooms = {}
+
+    @rm_delay = options.rm_delay || 0
+    @security = options.security
 
     server.command 'room_join', {
       room: ['string', 'undefined']
       status: ['object', 'undefined']
     }, (user, msg) =>
       if msg.room?
-        room = msg.room
+        room_id = msg.room
       else
-        room = uuid.v4()
+        room_id = uuid.v4()
 
       if msg.status?
         status = msg.status
       else
         status = {}
 
-      room = @get_room(room, true)
+      if @security?.join_room_id? and not @security.join_room_id(user, room_id)
+        throw new Error("Access denied")
+
+      room = @get_room(room_id, true)
+
+      if @security?.join_room? and not @security.join_room(user, room)
+        room.empty_check()
+        throw new Error("Access denied")
+
       return room.join(user, status)
 
     server.command 'room_leave', {

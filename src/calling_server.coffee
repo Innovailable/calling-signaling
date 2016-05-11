@@ -15,15 +15,15 @@ SERVER_ID = 'calling-signaling 1.0'
 
 class CallingServer extends Server
 
-  constructor: () ->
+  constructor: (options={}) ->
     super()
 
     hello_handler(@, SERVER_ID)
     status_handler(@)
     ping_handler(@)
 
-    @rooms = new RoomManager(@, 10 * 60 * 1000)
-    @registry = new Registry(@, @rooms)
+    @rooms = new RoomManager(@, options)
+    @registry = new Registry(@, @rooms, options)
     @invitations = new InvitationManager(@, @rooms)
 
 

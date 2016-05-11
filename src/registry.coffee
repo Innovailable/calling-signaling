@@ -350,15 +350,23 @@ class Namespace extends EventEmitter
 
 class Registry
 
-  constructor: (server, @rooms) ->
+  constructor: (server, @rooms, options={}) ->
     @namespaces = {}
+
+    @security = options.security
 
     # TODO: verification of incoming package
 
     server.command 'ns_user_register', {
       namespace: 'string'
     }, (user, msg) =>
-      return @get_namespace(msg.namespace, true).register_user(user)
+      namespace = @get_namespace(msg.namespace, true)
+
+      if @security?.register_user? and not @security.register_user(namespace, user)
+        namespace.empty_check()
+        throw new Error("Access denied")
+
+      return namespace.register_user(user)
 
     server.command 'ns_user_unregister', {
       namespace: 'string'
@@ -370,7 +378,17 @@ class Registry
       room: 'string'
     }, (user, msg) =>
       namespace = @get_namespace(msg.namespace, true)
+
+      if @security?.register_room_id? and not @security.register_room_id(namespace, user, msg.room)
+        namespace.empty_check()
+        throw new Error("Access denied")
+
       room = @rooms.get_room(msg.room)
+
+      if @security?.register_room? and not @security.register_room(namespace, user, room)
+        namespace.empty_check()
+        throw new Error("Access denied")
+
       return namespace.register_room(room)
 
     server.command 'ns_room_unregister', {
@@ -384,7 +402,13 @@ class Registry
     server.command 'ns_subscribe', {
       namespace: 'string'
     }, (user, msg) =>
-      return @get_namespace(msg.namespace, true).subscribe(user)
+      namespace = @get_namespace(msg.namespace, true)
+
+      if @security?.subscribe? and not @security.subscribe(namespace, user)
+        namespace.empty_check()
+        throw new Error("Access denied")
+
+      return namespace.subscribe(user)
 
     server.command 'ns_unsubscribe', {
       namespace: 'string'

@@ -111,7 +111,7 @@ describe 'Rooms', () ->
 
 
     it 'should be able to delay cleaning up rooms', () ->
-      rooms = new RoomManager(server, 1000)
+      rooms = new RoomManager(server, {rm_delay: 1000})
 
       # join room
 
@@ -133,7 +133,7 @@ describe 'Rooms', () ->
 
 
     it 'should should not clean up room when user joins in delay', () ->
-      rooms = new RoomManager(server, 1000)
+      rooms = new RoomManager(server, {rm_delay: 1000})
 
       # join room
 
@@ -190,6 +190,19 @@ describe 'Rooms', () ->
 
       res = server.trigger(user_c, {type: 'room_join', room: 'r'})
       res.peers['a'].status.should.deep.equal({a: 'b'})
+
+
+  describe 'Security', () ->
+
+    it 'should not deny allowed users to join room id'
+
+    it 'should deny forbidden users to join room id'
+
+    it 'should not deny allowed users to join room'
+
+    it 'should deny forbidden users to join room'
+
+    it 'should emit empty on room after denying join on new room'
 
 
   describe 'Room', () ->

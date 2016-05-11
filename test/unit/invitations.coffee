@@ -251,4 +251,14 @@ describe 'Invitations', () ->
     return rooms.rooms['r'].peers['b'].should.become(undefined)
 
 
+  it 'should not deny allowed users to invite to room id'
+
+  it 'should deny forbidden users to invite to room id'
+
+  it 'should not deny allowed users to invite to room'
+
+  it 'should deny forbidden users to invite to room'
+
+  it 'should emit empty on room after denying invite to new room'
+
   it 'should test commands'

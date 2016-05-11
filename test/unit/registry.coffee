@@ -585,3 +585,21 @@ describe 'Registry', () ->
 
       ns2.should.equal(ns1)
 
+  describe 'Security', () ->
+
+    it 'should not deny allowed users to register room id'
+
+    it 'should deny forbidden users to register room id'
+
+    it 'should not deny allowed users to register room'
+
+    it 'should deny forbidden users to register room'
+
+    it 'should not deny allowed users to register themselves'
+
+    it 'should deny forbidden users to register themselves'
+
+    it 'should not deny allowed users to subscribe'
+
+    it 'should deny forbidden users to subscribe'
+

@@ -73,7 +73,9 @@ class Invitation
 
 class InvitationManager
 
-  constructor: (@server, @rooms) ->
+  constructor: (@server, @rooms, options={}) ->
+    @security = options.security
+
     @server.user_init (user) ->
       user.invites = {
         next_id: 0
@@ -118,7 +120,14 @@ class InvitationManager
     if not to?
       throw new Error("Unknown recipient")
 
+    if security?.invite_to_room_id? and not security.invite_to_room_id(user, to, room_id)
+      throw new Error("Access denied")
+
     room = @rooms.get_room(room_id, true)
+
+    if security?.invite_to_room? and not security.invite_to_room(user, to, room)
+      room.empty_check()
+      throw new Error("Access denied")
 
     user_handle = user.invites.next_id++
     to_handle = to.invites.next_id++
