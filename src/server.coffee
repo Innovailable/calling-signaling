@@ -1,5 +1,6 @@
 uuid = require('node-uuid')
 {EventEmitter} = require('events')
+{Promise} = require('bluebird')
 
 type_check = (desc, obj) ->
   if typeof(desc) == 'string'
@@ -45,46 +46,42 @@ class User extends EventEmitter
 
 
   receive: (msg) ->
-    error = (reason) =>
-      @send({
-        type: 'answer'
-        tid: msg.tid
-        error: reason
-      })
-
     if not msg.tid?
       @send({
         type: 'error'
         error: 'Missing tid in message'
       })
-      return
 
-    if not msg.type?
-      error("Missing type in message")
-      return
+      return Promise.resolve()
 
-    cmd = @server.commands[msg.type]
+    Promise.resolve().then () =>
+      if not msg.type?
+        throw new Error("Missing type in message")
+        return
 
-    if not cmd?
-      error("Unknown command")
-      return
+      cmd = @server.commands[msg.type]
 
-    try
-      res = cmd(@, msg)
-    catch err
-      error(err.message)
-      return
+      if not cmd?
+        throw new Error("Unknown command")
 
-    if res?
+      return cmd(@, msg)
+
+    .then (res) =>
+      msg = {
+        type: 'answer'
+        tid: msg.tid
+      }
+
+      if res?
+        msg.data = res
+
+      return @send(msg)
+
+    .catch (err) =>
       @send({
         type: 'answer'
         tid: msg.tid
-        data: res
-      })
-    else
-      @send({
-        type: 'answer'
-        tid: msg.tid
+        error: err.message
       })
 
 

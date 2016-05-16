@@ -69,10 +69,10 @@ describe 'Server', () ->
 
   describe 'User', () ->
 
-    test_user = null
+    user = null
 
     beforeEach () ->
-      test_user = server.create_user(channel)
+      user = server.create_user(channel)
 
     it 'should run registered command', () ->
       return new Promise (resolve) ->
@@ -82,7 +82,7 @@ describe 'Server', () ->
         }
 
         server.command 'test', {}, (user, msg) ->
-          user.should.equal(test_user)
+          user.should.equal(user)
           msg.should.equal(msg)
           resolve()
 
@@ -112,13 +112,12 @@ describe 'Server', () ->
 
 
     it 'should reject messages without type', () ->
-      channel.receive({tid: 0})
-
-      channel.sent[0].should.deep.equal({
-        type: 'answer'
-        tid: 0
-        error: 'Missing type in message'
-      })
+      user.receive({tid: 0}).then () ->
+        channel.sent[0].should.deep.equal({
+          type: 'answer'
+          tid: 0
+          error: 'Missing type in message'
+        })
 
 
     it 'should reject messages without tid', () ->
@@ -131,18 +130,17 @@ describe 'Server', () ->
 
 
     it 'should reject messages with unknown command', () ->
-      channel.receive({type: 'a', tid: 0})
-
-      channel.sent[0].should.deep.equal({
-        type: 'answer'
-        tid: 0
-        error: 'Unknown command'
-      })
+      user.receive({type: 'a', tid: 0}).then () ->
+        channel.sent[0].should.deep.equal({
+          type: 'answer'
+          tid: 0
+          error: 'Unknown command'
+        })
 
 
     it 'should emit `left` when channel closes', () ->
       return new Promise (resolve) ->
-        test_user.on('left', resolve)
+        user.on('left', resolve)
 
         channel.emit('closed')
 
@@ -151,35 +149,41 @@ describe 'Server', () ->
       msg = {type: 'test'}
 
       channel.sent.should.be.empty
-      test_user.send(msg)
+      user.send(msg)
       channel.sent.should.deep.equal([msg])
 
 
     it 'should answer on messages without payload', () ->
       server.command('test', {}, () ->)
 
-      channel.receive({type: 'test', tid: 42})
-      channel.sent.should.deep.equal([{type: 'answer', tid: 42}])
+      user.receive({type: 'test', tid: 42}).then () ->
+        channel.sent.should.deep.equal([{type: 'answer', tid: 42}])
 
 
     it 'should answer on messages with payload', () ->
       server.command('test', {}, () -> 23)
 
-      channel.receive({type: 'test', tid: 42})
-      channel.sent.should.deep.equal([{type: 'answer', tid: 42, data: 23}])
+      user.receive({type: 'test', tid: 42}).then () ->
+        channel.sent.should.deep.equal([{type: 'answer', tid: 42, data: 23}])
+
+
+    it 'should answer on messages using promises', () ->
+      server.command('test', {}, () -> Promise.resolve(23))
+
+      user.receive({type: 'test', tid: 42}).then () ->
+        channel.sent.should.deep.equal([{type: 'answer', tid: 42, data: 23}])
 
 
     it 'should send exception message in answer error', () ->
       error_msg = 'Some error occured'
 
       server.command('test', {}, () -> throw new Error(error_msg))
-      channel.receive({type: 'test', tid: 0})
-
-      channel.sent.should.deep.equal([{
-        type: 'answer'
-        tid: 0
-        error: error_msg
-      }])
+      user.receive({type: 'test', tid: 0}).then () ->
+        channel.sent.should.deep.equal([{
+          type: 'answer'
+          tid: 0
+          error: error_msg
+        }])
 
 
   describe 'msg_integrity', () ->
