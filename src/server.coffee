@@ -86,12 +86,13 @@ class User extends EventEmitter
 
 
   send: (msg) ->
-    @channel.send(msg)
+    @channel.send(msg).catch (err) =>
+      @leave()
 
 
   leave: () ->
     @emit('left')
-    @channel.close()
+    @channel.close().catch((err) =>)
 
 
   set_userdata: (key, value) ->
