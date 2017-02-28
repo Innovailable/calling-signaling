@@ -36,7 +36,7 @@ class exports.WebsocketChannel extends EventEmitter
       catch err
         @emit('error', "Error processing incoming message: " + err.message)
 
-    @ws.on 'close', () =>
+    @ws.once 'close', () =>
       @emit('closed')
 
   ###*

@@ -165,7 +165,7 @@ class Namespace extends EventEmitter
     left_cb = () =>
       @unsubscribe(user)
 
-    user.on('left', left_cb)
+    user.once('left', left_cb)
 
     # actually subscribe
 
@@ -180,8 +180,8 @@ class Namespace extends EventEmitter
     users = {}
 
     for user_id, entry of @registered
-      user = entry.user
-      users[user_id] = user.status
+      cur = entry.user
+      users[user_id] = cur.status
 
     # list of registered rooms
 
@@ -250,7 +250,7 @@ class Namespace extends EventEmitter
       @unregister_user(user)
 
     user.on('status_changed', status_change)
-    user.on('left', left)
+    user.once('left', left)
 
     # register
 
