@@ -46,11 +46,11 @@ class exports.WebsocketChannel extends EventEmitter
   ###
   send: (data) ->
     msg = JSON.stringify(data)
-    return Promise.promisify(@ws.send).call(@ws, msg)
+    return Promise.promisify(@ws.send).call(@ws, msg).catch(() ->)
 
   ###*
   # Close the connection to the client
   # @method close
   ###
   close: () ->
-    return Promise.promisify(@ws.close).call(@ws)
+    return Promise.promisify(@ws.close).call(@ws).catch(() ->)
