@@ -43,6 +43,8 @@ class User extends EventEmitter
 
 
   receive: (msg) ->
+    @emit('received', msg)
+
     error = (reason) =>
       @send({
         type: 'answer'
@@ -88,6 +90,7 @@ class User extends EventEmitter
 
   send: (msg) ->
     @channel.send(msg)
+    @emit('sent', msg)
 
 
   leave: () ->
