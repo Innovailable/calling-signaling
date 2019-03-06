@@ -6,6 +6,7 @@
 {RoomManager} = require('./rooms')
 {InvitationManager} = require('./invitations')
 {WebsocketChannel} = require('./websocket_channel')
+{WebsocketHeartbeat} = require('./websocket_heartbeat')
 {Promise} = require('bluebird')
 
 WebSocketServer = require('ws').Server
@@ -42,6 +43,7 @@ class CallingWebsocketServer extends CallingServer
 
       @wss.on 'connection', (ws) =>
         channel = new WebsocketChannel(ws)
+        new WebsocketHeartbeat(ws)
         @create_user(channel)
 
 
