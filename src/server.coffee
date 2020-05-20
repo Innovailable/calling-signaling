@@ -26,6 +26,8 @@ msg_integrity = (types, msg) ->
 class User extends EventEmitter
 
   constructor: (@id, @channel, @server) ->
+    super()
+
     @channel.on 'message', (msg) =>
       @receive(msg)
 
@@ -98,9 +100,11 @@ class User extends EventEmitter
     @channel.close()
 
 
-class Server
+class Server extends EventEmitter
 
   constructor: () ->
+    super()
+
     @users = {}
     @commands = {}
     @inits = []
@@ -132,6 +136,8 @@ class Server
 
     user = new User(id, channel, @)
     @users[id] = user
+
+    @emit('new_user', user)
 
     user.on 'left', () =>
       delete @users[id]

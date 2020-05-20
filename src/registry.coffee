@@ -149,6 +149,10 @@ class Namespace extends EventEmitter
     @rooms = {}
 
 
+  close: () ->
+    @emit('closed')
+
+
   broadcast: (msg) ->
     for _, entry of @subscribed
       entry.user.send(msg)
@@ -336,7 +340,7 @@ class Namespace extends EventEmitter
       @emit('empty')
 
 
-class Registry
+class Registry extends EventEmitter
 
   constructor: (server, @rooms) ->
     @namespaces = {}
@@ -389,7 +393,10 @@ class Registry
       if create
         namespace = @namespaces[ns_id] = new Namespace(ns_id)
 
+        @emit('new_namespace', namespace)
+
         namespace.on 'empty', () =>
+          @namespaces[ns_id].close()
           delete @namespaces[ns_id]
       else
         throw new Error("Namespace does not exist")

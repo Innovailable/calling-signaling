@@ -6,6 +6,8 @@ uuid = require('node-uuid')
 class RoomUser extends EventEmitter
 
   constructor: (@user, @peer_status, @pending=false) ->
+    super()
+
     @active = true
 
     @leave_cb = () =>
@@ -53,10 +55,16 @@ class RoomUser extends EventEmitter
 class Room extends EventEmitter
 
   constructor: (@id) ->
+    super()
+
     @peers = {}
     @status = {}
 
     return
+
+
+  close: () ->
+    @emit('closed')
 
 
   user_check: (user) ->
@@ -236,9 +244,11 @@ class Room extends EventEmitter
     return
 
 
-class RoomManager
+class RoomManager extends EventEmitter
 
   constructor: (server, @rm_delay=0) ->
+    super()
+
     @rooms = {}
 
     server.command 'room_join', {
@@ -300,8 +310,11 @@ class RoomManager
       if create
         room = @rooms[room_id] = new Room(room_id)
 
+        @emit('new_room', room)
+
         room.on 'empty', () =>
           rm_room = () =>
+            @rooms[room_id].close()
             delete @rooms[room_id]
 
           if @rm_delay <= 0
