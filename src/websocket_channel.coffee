@@ -34,7 +34,11 @@ class exports.WebsocketChannel extends EventEmitter
         data = JSON.parse(msg)
         @emit('message', data)
       catch err
-        @emit('error', "Error processing incoming message: " + err.message)
+        @emit('error', new Error("Error processing incoming message: " + err.message))
+
+    @ws.on 'error', (err) =>
+      @emit('error', err)
+
 
     @ws.once 'close', () =>
       @emit('closed')
