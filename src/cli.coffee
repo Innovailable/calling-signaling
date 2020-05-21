@@ -18,8 +18,6 @@ get_cli_options = () ->
     for module in disable_str.split(/\s+/)
       res[module] = false
 
-  console.log(res)
-
   return res
 
 module.exports = {
