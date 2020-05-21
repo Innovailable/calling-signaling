@@ -13,26 +13,57 @@ WebSocketServer = require('ws').Server
 
 
 SERVER_ID = 'calling-signaling 1.0'
-DEFAULT_TIMEOUT = 10*60*1000
+
+default_options = {
+  hello: true
+  status: true
+  ping: true
+  rooms: true
+  registry: true
+  invitations: true
+}
+
+resolve_option = (sub_config, key, dfl) ->
+  if sub_config == null or typeof sub_config != 'object'
+    return dfl
+
+  return sub_config[key] ? dfl
 
 class CallingServer extends Server
 
-  constructor: (room_timeout=DEFAULT_TIMEOUT, server_id=SERVER_ID) ->
+  constructor: (user_options) ->
     super()
 
-    hello_handler(@, server_id)
-    status_handler(@)
-    ping_handler(@)
+    options = Object.assign({}, default_options, user_options)
 
-    @rooms = new RoomManager(@, room_timeout)
-    @registry = new Registry(@, @rooms)
-    @invitations = new InvitationManager(@, @rooms)
+    if options.hello
+      server_id = resolve_option(options.hello, 'server_id', SERVER_ID)
+      hello_handler(@, server_id)
+
+    if options.status
+      status_handler(@)
+
+    if options.ping
+      ping_handler(@)
+
+    if options.rooms
+      timeout = resolve_option(options.rooms, 'timeout', 10*60*1000)
+      @rooms = new RoomManager(@, timeout)
+
+    if options.registry
+      @registry = new Registry(@, @rooms)
+
+    if options.invitations
+      if not @rooms?
+        throw new Error("'invitations' cannot be used without 'rooms'")
+
+      @invitations = new InvitationManager(@, @rooms)
 
 
 class CallingWebsocketServer extends CallingServer
 
-  constructor: (room_timeout=DEFAULT_TIMEOUT, server_id=SERVER_ID) ->
-    super(room_timeout, server_id)
+  constructor: (user_options) ->
+    super(user_options)
 
 
   listen: (port=8080, host='0.0.0.0') ->
