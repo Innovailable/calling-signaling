@@ -120,6 +120,7 @@ class Room extends EventEmitter
     @peers[user.id] = room_user
 
     @emit('new_peer', room_user)
+    @emit('peers_changed', @peers)
 
     return room_user
 
@@ -188,6 +189,8 @@ class Room extends EventEmitter
 
     room_user.destroy()
     delete @peers[user_id]
+
+    @emit('peers_changed', @peers)
 
     @broadcast({
       type: 'room_peer_rm'

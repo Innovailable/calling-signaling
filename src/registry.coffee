@@ -406,10 +406,12 @@ class Registry extends EventEmitter
         namespace = @namespaces[ns_id] = new Namespace(ns_id)
 
         @emit('new_namespace', namespace)
+        @emit('namspaces_changed', @namespaces)
 
         namespace.on 'empty', () =>
           @namespaces[ns_id].close()
           delete @namespaces[ns_id]
+          @emit('namspaces_changed', @namespaces)
       else
         throw new Error("Namespace does not exist")
 
