@@ -1,7 +1,7 @@
 {EventEmitter} = require('events')
 {is_empty} = require('./helper')
 equal = require('deep-equal')
-uuid = require('node-uuid')
+{ v4: uuidv4 } = require('uuid')
 
 class RoomUser extends EventEmitter
 
@@ -272,7 +272,7 @@ class RoomManager extends EventEmitter
       if msg.room?
         room = msg.room
       else
-        room = uuid.v4()
+        room = uuidv4()
 
       if msg.status?
         status = msg.status

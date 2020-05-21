@@ -1,5 +1,5 @@
-uuid = require('node-uuid')
 {EventEmitter} = require('events')
+{ v4: uuidv4 } = require('uuid')
 
 type_check = (desc, obj) ->
   if typeof(desc) == 'string'
@@ -149,7 +149,7 @@ class Server extends EventEmitter
 
 
   create_user: (channel) ->
-    id = uuid.v4()
+    id = uuidv4()
 
     user = new User(id, channel, @)
     @users[id] = user

@@ -3,10 +3,11 @@
   "description": "A WebRTC signaling server supporting calling",
   "version": "0.0.6",
   "dependencies": {
-    "bluebird": "^3.5.3",
-    "deep-equal": "^1.0.1",
+    "bluebird": "^3.7.2",
+    "deep-equal": "^2.0.3",
     "node-uuid": "^1.4.8",
-    "ws": "^6.1.4"
+    "uuid": "^8.1.0",
+    "ws": "^7.3.0"
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha --compilers coffee:coffee-script/register --recursive"
