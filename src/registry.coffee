@@ -186,6 +186,8 @@ class Namespace extends EventEmitter
         user.removeListener('left', left_cb)
     }
 
+    @emit('subscribed_changed', @subscribed)
+
     # list of registered users
 
     users = {}
@@ -223,6 +225,8 @@ class Namespace extends EventEmitter
     # actually remove user from namespace
 
     delete @subscribed[user.id]
+
+    @emit('subscribed_changed', @subscribed)
 
     # clean up namespace if empty
 
@@ -277,6 +281,8 @@ class Namespace extends EventEmitter
         user.removeListener('left', left)
     }
 
+    @emit('registered_changed', @registered)
+
     return
 
 
@@ -300,6 +306,8 @@ class Namespace extends EventEmitter
     entry.cleanup()
     delete @registered[user.id]
 
+    @emit('registered_changed', @registered)
+
     # clean up namespace if empty
 
     @empty_check()
@@ -317,6 +325,8 @@ class Namespace extends EventEmitter
 
     ns_room = new NamespaceRoom(room, @)
     @rooms[room.id] = ns_room
+
+    @emit('rooms_changed', @rooms)
 
     # unregister when empty
 
@@ -339,6 +349,8 @@ class Namespace extends EventEmitter
 
     ns_room.unregister()
     delete @rooms[room.id]
+
+    @emit('rooms_changed', @rooms)
 
     # clean up namespace if empty
 

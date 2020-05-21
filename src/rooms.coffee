@@ -328,11 +328,13 @@ class RoomManager extends EventEmitter
         room = @rooms[room_id] = new Room(room_id)
 
         @emit('new_room', room)
+        @emit('rooms_changed', @rooms)
 
         room.on 'empty', () =>
           rm_room = () =>
             @rooms[room_id].close()
             delete @rooms[room_id]
+            @emit('rooms_changed', @rooms)
 
           if @rm_delay <= 0
             rm_room()
