@@ -1,11 +1,10 @@
 {
   "name": "calling-signaling",
   "description": "A WebRTC signaling server supporting calling",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "dependencies": {
     "bluebird": "^3.7.2",
     "deep-equal": "^2.0.3",
-    "node-uuid": "^1.4.8",
     "uuid": "^8.1.0",
     "ws": "^7.3.0"
   },
