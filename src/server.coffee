@@ -107,7 +107,7 @@ class User extends EventEmitter
     @emit('userdata_changed', key, value)
 
 
-  get_userdate: (obj={}) ->
+  get_userdata: (obj={}) ->
     for key, value of @userdata
       if obj[key]?
         throw new Error("Conflicting userdata")
