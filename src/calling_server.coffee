@@ -13,25 +13,26 @@ WebSocketServer = require('ws').Server
 
 
 SERVER_ID = 'calling-signaling 1.0'
+DEFAULT_TIMEOUT = 10*60*1000
 
 class CallingServer extends Server
 
-  constructor: () ->
+  constructor: (room_timeout=DEFAULT_TIMEOUT, server_id=SERVER_ID) ->
     super()
 
-    hello_handler(@, SERVER_ID)
+    hello_handler(@, server_id)
     status_handler(@)
     ping_handler(@)
 
-    @rooms = new RoomManager(@, 10 * 60 * 1000)
+    @rooms = new RoomManager(@, room_timeout)
     @registry = new Registry(@, @rooms)
     @invitations = new InvitationManager(@, @rooms)
 
 
 class CallingWebsocketServer extends CallingServer
 
-  constructor: () ->
-    super()
+  constructor: (room_timeout=DEFAULT_TIMEOUT, server_id=SERVER_ID) ->
+    super(room_timeout, server_id)
 
 
   listen: (port=8080, host='0.0.0.0') ->
