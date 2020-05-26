@@ -79,16 +79,14 @@ describe 'Registry', () ->
 
 
       it 'should return registered user on `subscribe()`', () ->
-        user_a.userdata.status = {b: 'c'}
+        user_a.status = {b: 'c'}
         namespace.register_user(user_a)
 
         res = namespace.subscribe(user_b)
 
         res.should.deep.equal({
           users: {
-            a: {
-              status: {b: 'c'}
-            }
+            a: {b: 'c'}
           }
           rooms: {}
         })
@@ -121,7 +119,7 @@ describe 'Registry', () ->
       it 'should notify of new user', () ->
         namespace.subscribe(user_a)
 
-        user_b.userdata.status = {a: 'b'}
+        user_b.status = {a: 'b'}
         namespace.register_user(user_b)
 
         user_a.sent.should.deep.equal([{
@@ -160,8 +158,8 @@ describe 'Registry', () ->
         namespace.register_user(user_b)
         namespace.subscribe(user_a)
 
-        user_b.userdata.status = {a: 'b'}
-        user_b.emit('userdata_changed', 'status', user_b.status)
+        user_b.status = {a: 'b'}
+        user_b.emit('status_changed', user_b.status)
 
         user_a.sent.should.deep.equal([{
           type: 'ns_user_update'
@@ -177,7 +175,7 @@ describe 'Registry', () ->
         namespace.subscribe(user_a)
 
         user_b.status = {a: 'b'}
-        user_b.emit('userdata_changed', user_b.status)
+        user_b.emit('status_changed', user_b.status)
 
         user_a.sent.should.be.empty
 
@@ -185,24 +183,24 @@ describe 'Registry', () ->
       it 'should remove listeners after user left', () ->
         namespace.register_user(user_a)
 
-        user_a.listeners('userdata_changed').should.have.length(1)
+        user_a.listeners('status_changed').should.have.length(1)
         user_a.listeners('left').should.have.length(1)
 
         namespace.unregister_user(user_a)
 
-        user_a.listeners('userdata_changed').should.be.empty
+        user_a.listeners('status_changed').should.be.empty
         user_a.listeners('left').should.be.empty
 
 
       it 'should remove listeners unregistering', () ->
         namespace.register_user(user_a)
 
-        user_a.listeners('userdata_changed').should.have.length(1)
+        user_a.listeners('status_changed').should.have.length(1)
         user_a.listeners('left').should.have.length(1)
 
         user_a.emit('left')
 
-        user_a.listeners('userdata_changed').should.be.empty
+        user_a.listeners('status_changed').should.be.empty
         user_a.listeners('left').should.be.empty
 
 
@@ -327,7 +325,7 @@ describe 'Registry', () ->
           namespace.subscribe(user_a)
 
           room.status = {c: 'd'}
-          room.emit('status_changed', 'status', room.status)
+          room.emit('status_changed', room.status)
 
           user_a.sent.should.deep.equal([{
             type: 'ns_room_update'
@@ -401,7 +399,7 @@ describe 'Registry', () ->
           namespace.subscribe(user_a)
 
           peer.status = {test: 'status'}
-          peer.emit('userdata_changed', 'status', peer.status)
+          peer.emit('status_changed', peer.status)
 
           user_a.sent.should.deep.equal([{
             type: 'ns_room_peer_update'
@@ -424,7 +422,7 @@ describe 'Registry', () ->
           namespace.unregister_room(room)
 
           room.listeners('empty').should.be.empty
-          room.listeners('userdata_changed').should.be.empty
+          room.listeners('status_changed').should.be.empty
           room.listeners('new_peer').should.be.empty
 
 
@@ -446,13 +444,13 @@ describe 'Registry', () ->
           namespace.register_room(room)
 
           peer.listeners('left').should.have.length(1)
-          peer.listeners('userdata_changed').should.have.length(1)
+          peer.listeners('status_changed').should.have.length(1)
           peer.listeners('accepted').should.have.length(1)
 
           namespace.unregister_room(room)
 
           peer.listeners('left').should.be.empty
-          peer.listeners('userdata_changed').should.be.empty
+          peer.listeners('status_changed').should.be.empty
           peer.listeners('accepted').should.be.empty
 
 

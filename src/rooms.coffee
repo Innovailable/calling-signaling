@@ -15,13 +15,12 @@ class RoomUser extends EventEmitter
 
     @user.on('left', @leave_cb)
 
-    @userdata_cb = (key, value) =>
-      if key == 'status'
-        @emit('userdata_changed', 'status', @merged_status())
-      else
-        @emit('userdata_changed', key, value)
+    @status_cb = () =>
+      @update_status()
 
-    @user.on('userdata_changed', @userdata_cb)
+    @user.on('status_changed', @status_cb)
+
+    @update_status()
 
     return
 
@@ -31,31 +30,25 @@ class RoomUser extends EventEmitter
     @emit('accepted')
 
 
-  merged_status: () ->
-    res = {}
-
-    for status in [@user.userdata.status, @peer_status]
-      for key, value of status
-        res[key] = value
-
-    return res
-
-
   set_status: (status) ->
     @peer_status = status
-    @emit('userdata_changed', 'status', @merged_status())
+    @update_status()
 
 
-  get_userdata: (obj={}) ->
-    @user.get_userdata(obj)
-    obj.status = @merged_status()
-    return obj
+  update_status: () ->
+    @status = {}
+
+    for status in [@user.status, @peer_status]
+      for key, id of status
+        @status[key] = id
+
+    @emit('status_changed', @status)
 
 
   destroy: () ->
     @active = false
     @user.removeListener('left', @leave_cb)
-    @user.removeListener('userdata_changed', @userdata_cb)
+    @user.removeListener('status_changed', @status_cb)
     return
 
 
@@ -95,27 +88,21 @@ class Room extends EventEmitter
     room_user.on 'left', () =>
       @remove(room_user)
 
-    room_user.on 'userdata_changed', (key, value) =>
-      msg = {
+    room_user.on 'status_changed', () =>
+      @broadcast({
         type: 'room_peer_update'
         room: @id
         user: user.id
-      }
+        status: room_user.status
+      }, user.id)
 
-      room_user.get_userdata(msg)
-
-      @broadcast(msg, user.id)
-
-    msg = {
+    @broadcast({
       type: 'room_peer_add'
       room: @id
       pending: pending
       user: user.id
-    }
-
-    room_user.get_userdata(msg)
-
-    @broadcast(msg, user.id)
+      status: room_user.status
+    }, user.id)
 
     @peers[user.id] = room_user
 
@@ -166,15 +153,14 @@ class Room extends EventEmitter
   peers_object: (exclude) ->
     peers = {}
 
-    for user_id, peer of @peers
+    for user_id, user of @peers
       if user_id == exclude
         continue
 
       peers[user_id] = {
-        pending: peer.pending
+        pending: user.pending
+        status: user.status
       }
-
-      peer.get_userdata(peers[user_id])
 
     return peers
 
