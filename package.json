@@ -3,6 +3,7 @@
   "description": "A WebRTC signaling server supporting calling",
   "version": "0.1.2",
   "license": "AGPL-3.0",
+  "author": "Stephan Thamm <thammi@chaossource.net>",
   "dependencies": {
     "bluebird": "^3.7.2",
     "deep-equal": "^2.0.3",
