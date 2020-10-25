@@ -2,6 +2,7 @@
 {status_handler} = require('./status')
 {hello_handler} = require('./hello')
 {ping_handler} = require('./ping')
+{timeout_handler} = require('./timeout')
 {Registry} = require('./registry')
 {RoomManager} = require('./rooms')
 {InvitationManager} = require('./invitations')
@@ -18,6 +19,7 @@ default_options = {
   hello: true
   status: true
   ping: true
+  timeout: true
   rooms: true
   registry: true
   invitations: true
@@ -45,6 +47,9 @@ class CallingServer extends Server
 
     if options.ping
       ping_handler(@)
+
+    if options.timeout
+      timeout_handler(@)
 
     if options.rooms
       timeout = resolve_option(options.rooms, 'timeout', 10*60*1000)
